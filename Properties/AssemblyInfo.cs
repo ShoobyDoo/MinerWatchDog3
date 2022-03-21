@@ -10,7 +10,7 @@ using System.Windows;
 [assembly: AssemblyTitle("Miner WatchDog 3")]
 [assembly: AssemblyDescription("Monitor running process to automatically start/stop crypto mining software.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Doomlad")]
+[assembly: AssemblyCompany("MinerWatchDog3")]
 [assembly: AssemblyProduct("Miner WatchDog 3")]
 [assembly: AssemblyCopyright("Copyright © Doomlad 2022")]
 [assembly: AssemblyTrademark("")]
@@ -51,5 +51,5 @@ using System.Windows;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.8.0.0")]
-[assembly: AssemblyFileVersion("3.8.0.0")]
+[assembly: AssemblyVersion("3.8.1.0")]
+[assembly: AssemblyFileVersion("3.8.1.0")]

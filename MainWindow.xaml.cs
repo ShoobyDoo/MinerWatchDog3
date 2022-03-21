@@ -18,6 +18,7 @@ using MessageBox = System.Windows.MessageBox;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace ModernMinerWatchDog
 {
@@ -549,7 +550,7 @@ namespace ModernMinerWatchDog
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = updaterPath,
-                        Arguments = String.Format("--check {0}", silentFlag) + " phoenixminer",
+                        Arguments = String.Format("--check {0} phoenixminer", silentFlag),
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         CreateNoWindow = true
@@ -1282,7 +1283,7 @@ namespace ModernMinerWatchDog
                         minerStoppedMsg.ApplyPropertyValue(ForegroundProperty, new SolidColorBrush(Color.FromRgb(23, 162, 184)));
                         miner.Kill();
                     }
-                    
+
                     string applicationPath = System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase;
                     applicationPath = System.IO.Path.GetDirectoryName(applicationPath);
                     string updaterPath = applicationPath.Replace(@"file:\", "") + @"\Miner\miner-updater.exe";
@@ -1293,7 +1294,7 @@ namespace ModernMinerWatchDog
                         {
                             FileName = updaterPath,
                             WorkingDirectory = applicationPath.Replace(@"file:\", "") + @"\Miner",
-                            Arguments = "--update --install --silent",
+                            Arguments = "--update --install --silent phoenixminer",
                             UseShellExecute = false,
                             RedirectStandardOutput = true,
                             CreateNoWindow = true
@@ -1333,8 +1334,7 @@ namespace ModernMinerWatchDog
 
                 checkUpdates();
 
-                MessageBox.Show("Note:\n\nAlthough attempting to restart after an update has been tested extensively, it is still experimental.\n\n" +
-                    "If you notice significant differences in performance (ex. unusually high ram usage, far lower hashrate, etc.) " +
+                MessageBox.Show("Note:\n\nIf you notice significant differences in performance (ex. unusually high ram usage, far lower hashrate, etc.) " +
                     "or you notice the watchdog is not working as intended after the auto-update, simply restart.");
 
                 miner.Start();
@@ -1342,7 +1342,6 @@ namespace ModernMinerWatchDog
                 tProcMiner.IsBackground = true;
                 tProcMiner.Start();
             }
-            
         }
 
         private void hkGaming_TextChanged(object sender, TextChangedEventArgs e)
