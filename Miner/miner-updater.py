@@ -5,6 +5,12 @@
 # Edit   : 03/17/2022
 # File   : miner-updater.py
 
+# Permission is hereby granted, free of charge, to any person obtaining 
+# a copy of this software and associated documentation files (the "Software"), 
+# to deal in the Software without restriction, including without limitation the 
+# rights to use, copy, modify, merge and publish, distribute, sublicense, 
+# and/or sell copies of the Software under the License.
+
 from bs4 import BeautifulSoup
 import requests
 import sys

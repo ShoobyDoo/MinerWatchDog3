@@ -15,10 +15,12 @@ using GetFirstCharIndexFromLine = System.Windows.Forms;
 using Application = System.Windows.Application;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using MessageBox = System.Windows.MessageBox;
+using System.Windows.Threading;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace ModernMinerWatchDog
 {
@@ -38,6 +40,8 @@ namespace ModernMinerWatchDog
         
         public bool MinerRunning { get; set; }
         public bool UpdateAvailable { get; set; }
+        public bool ConfigImported { get; set; }
+        public string PreviousVersion { get; set; }
 
         public MainWindow()
         {
@@ -58,6 +62,7 @@ namespace ModernMinerWatchDog
 
             icoTrayIcon.Icon = new System.Drawing.Icon(iconStream);
             icoTrayIcon.Text = "Miner WatchDog 3";
+            icoTrayIcon.Visible = true;
             icoTrayIcon.MouseDoubleClick += icoTrayIcon_MouseDoubleClick;
 
             // Main miner process info
@@ -80,8 +85,9 @@ namespace ModernMinerWatchDog
             {
                 miner.Kill();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Helpers.DebugConsole(txtDebug, "Could not kill the miner executable. Perhaps no miner process running/found?\n\nSee:\n" + ex, "Exit");
             }
         }
 
@@ -105,29 +111,26 @@ namespace ModernMinerWatchDog
             }
         }
 
+        private void Window_Activated(object sender, EventArgs e)
+        {
+        }
+
         private void ButtonMinimize_Click(object sender, RoutedEventArgs e)
         {
-            Application.Current.MainWindow.WindowState = WindowState.Minimized;
+            this.WindowState = WindowState.Minimized;
 
             if (Properties.Settings.Default.MinimizeToTray == true)
             {
                 if (WindowState.Minimized == this.WindowState)
                 {
                     Helpers.DebugConsole(txtDebug, "Program has been sent to tray", "Settings");
+
                     icoTrayIcon.BalloonTipText = "Monitoring running processes in the background...";
                     icoTrayIcon.BalloonTipTitle = "Miner WatchDog 3";
                     icoTrayIcon.BalloonTipIcon = ToolTipIcon.Info; 
-                    //icoTrayIcon.BalloonTipIcon = iconStream;
-
-                    icoTrayIcon.Visible = true;
                     icoTrayIcon.ShowBalloonTip(5);
 
-                    Hide();
-                }
-
-                else if (WindowState.Normal == this.WindowState)
-                {
-                    icoTrayIcon.Visible = false;
+                    this.Hide();
                 }
             }
         }
@@ -142,11 +145,6 @@ namespace ModernMinerWatchDog
             {
                 Application.Current.MainWindow.WindowState = WindowState.Normal;
             }
-        }
-
-        private void Window_Activated(object sender, EventArgs e)
-        {
-
         }
 
         private void ButtonExit_Click(object sender, RoutedEventArgs e)
@@ -187,18 +185,14 @@ namespace ModernMinerWatchDog
 
                     if (gamesList.Contains(p.ProcessName))
                     {
-                        //DebugConsole("INTENSE          : " + p.ProcessName);
-
-                        processStatus = "A GPU intensive program is currently running...";
+                        processStatus = String.Format("A GPU intensive program ({0}) is currently running...", p.ProcessName);
                         processList += " " + p.Id.ToString().PadRight(20) + p.ProcessName + "\n";
                         gamesAllowed = false;
                         break;
                     }
                     else if (gamesIgnored.Contains(p.ProcessName))
                     {
-                        //DebugConsole("NON INTENSE      : " + p.ProcessName);
-
-                        processStatus = "A Non-GPU intensive program is currently running...";
+                        processStatus = String.Format("A Non-GPU intensive program ({0}) is currently running...", p.ProcessName);
                         processList += " " + p.Id.ToString().PadRight(20) + p.ProcessName + "\n";
                         gamesAllowed = true;
                         parentFound = true;
@@ -206,18 +200,11 @@ namespace ModernMinerWatchDog
 
                     if (!parentFound)
                     {
-                        //DebugConsole("NO GAMES RUNNING : " + p.ProcessName);
-
                         processStatus = "No blacklisted program(s) currently running...";
                         allProcesses += " " + p.Id.ToString().PadRight(20) + p.ProcessName + "\n";
                         gamesAllowed = false;
                         parentFound = false;
                     }
-                    else
-                    {
-                        REFRESH_INTERVAL = 0;
-                    }
-
                 }
 
                 if (processList.Length < 1)
@@ -261,6 +248,13 @@ namespace ModernMinerWatchDog
                             txtConsole.ScrollToEnd();
 
                             Helpers.DebugConsole(txtDebug, "Miner process killed (" + Properties.Settings.Default.MinerPath + ")", "Main");
+                            
+                            icoTrayIcon.BalloonTipText = "Miner stopped: Blacklisted program(s) running.";
+                            icoTrayIcon.BalloonTipTitle = "Miner WatchDog 3";
+                            icoTrayIcon.BalloonTipIcon = ToolTipIcon.Info;
+                            icoTrayIcon.ShowBalloonTip(5);
+
+                            Helpers.DebugConsole(txtDebug, "Miner stopped balloon notification sent.", "Main");
                         });
                         tProcMiner.Abort(); // change
                     }
@@ -285,18 +279,19 @@ namespace ModernMinerWatchDog
                             this.Dispatcher.Invoke(() => 
                             {
                                 Helpers.DebugConsole(txtDebug, "Experimental: Attempting hot-key based clock preset for non-miner related task...");
+                                TextRange document = new TextRange(txtConsole.Document.ContentEnd, txtConsole.Document.ContentEnd);
 
-                                TextRange document = new TextRange(
-                                // TextPointer to the start of content in the RichTextBox.
-                                txtConsole.Document.ContentEnd,
-                                // TextPointer to the end of content in the RichTextBox.
-                                txtConsole.Document.ContentEnd
-                                );
-                                //TextRange document = new TextRange(txtConsole.Document.ContentStart, txtConsole.Document.ContentEnd);
                                 document.Text += "MinerWatchDog: Miner has been automatically started\nPresetController: (Context: " + presetMiner + ")\n";
                                 document.ApplyPropertyValue(ForegroundProperty, new SolidColorBrush(Color.FromRgb(23, 162, 184)));
 
-                                Helpers.DebugConsole(txtDebug, "Miner process started (" + Properties.Settings.Default.MinerPath + ")", "Main"); 
+                                Helpers.DebugConsole(txtDebug, "Miner process started (" + Properties.Settings.Default.MinerPath + ")", "Main");
+
+                                icoTrayIcon.BalloonTipText = "Miner started: Blacklisted program(s) are no longer running.";
+                                icoTrayIcon.BalloonTipTitle = "Miner WatchDog 3";
+                                icoTrayIcon.BalloonTipIcon = ToolTipIcon.Info;
+                                icoTrayIcon.ShowBalloonTip(5);
+
+                                Helpers.DebugConsole(txtDebug, "Miner started balloon notification sent.", "Main");
                             });
                         }
                         catch (Exception)
@@ -311,8 +306,6 @@ namespace ModernMinerWatchDog
                     }
                 }
 
-                //Console.WriteLine(minerStatus);
-
                 this.Dispatcher.Invoke(() =>
                 {
                     TextRange rangeStatus = new TextRange(txtStatus.Document.ContentStart, txtStatus.Document.ContentEnd);
@@ -323,10 +316,6 @@ namespace ModernMinerWatchDog
 
                     RichTextManipulation.FromTextPointer(txtMinerStatus.Document.ContentStart, txtMinerStatus.Document.ContentEnd, "ONLINE 🔴", Brushes.LimeGreen);
                     RichTextManipulation.FromTextPointer(txtMinerStatus.Document.ContentStart, txtMinerStatus.Document.ContentEnd, "OFFLINE 🔴", Brushes.Salmon);
-
-                    //txtStatus.Text = processStatus;
-                    //txtMinerStatus.Text = minerStatus;
-                    //TextRange processes = new TextRange(txtProcesses.Document.ContentStart, txtProcesses.Document.ContentEnd);
 
                     txtProcesses.Text = processListMsg + "Process Id".PadRight(20) +
                                         "Process Name\n----------          ------------\n" +
@@ -342,7 +331,7 @@ namespace ModernMinerWatchDog
         {
             var line = "";
 
-            //Helpers.DebugConsole(txtDebug, "Checking to see if miner has updates...", "Updater");
+            this.Dispatcher.Invoke(() => { Helpers.DebugConsole(txtDebug, "Attempting to swap hotkey presets...", "Hotkey"); });
 
             try
             {
@@ -562,9 +551,7 @@ namespace ModernMinerWatchDog
                 while (!minerUpdates.StandardOutput.EndOfStream)
                 {
                     line += minerUpdates.StandardOutput.ReadLine();
-                    Helpers.DebugConsole(txtDebug, line, "Changelog");
-
-                    //break;
+                    //Helpers.DebugConsole(txtDebug, line, "Changelog");
                 }
 
                 minerUpdates.WaitForExit();
@@ -620,9 +607,13 @@ namespace ModernMinerWatchDog
                 }
 
             }
+            catch (Win32Exception)
+            {
+                Helpers.DebugConsole(txtDebug, "Cannot access miner executable, likely not provided?", level: 1);
+            }
             catch (Exception ex)
             {
-                Helpers.DebugConsole(txtDebug, "An error occurred while attempting to check miner version! Stacktrace: " + ex.GetBaseException(), level: 2);
+                Helpers.DebugConsole(txtDebug, "General exception handler. Stacktrace:\n" + ex.GetBaseException(), level: 2);
             }
 
             return line.Trim();
@@ -633,7 +624,7 @@ namespace ModernMinerWatchDog
             string silentFlag = "";
             var line = "";
 
-            //Helpers.DebugConsole(txtDebug, "Checking to see if miner has updates...", "Updater");
+            Helpers.DebugConsole(txtDebug, "Checking for changelog...", "Changelog");
 
             try
             {
@@ -682,9 +673,12 @@ namespace ModernMinerWatchDog
         {
             string localMiner = checkLocalMinerVersion(silent: true);
             string latestMiner = checkMinerUpdate(silent: true);
-            string latestChangelog = checkLatestChangelog(silent: true);
-            Helpers.DebugConsole(txtDebug, "Checking for changelog... " + latestChangelog, "Updater");
 
+            Helpers.DebugConsole(txtDebug, "Local miner: " + (localMiner == "" ? "None" : localMiner), "Updater");
+            Helpers.DebugConsole(txtDebug, "Latest miner: " + latestMiner, "Updater");
+
+            string latestChangelog = checkLatestChangelog(silent: true);
+            Helpers.DebugConsole(txtDebug, String.Format("Changelog found, Raw: {0} characters.", latestChangelog.Length), "Changelog");
 
             if (localMiner.Trim() == latestMiner.Trim())
             {
@@ -714,10 +708,77 @@ namespace ModernMinerWatchDog
             }
 
             txtLocalMiner.Text = "Miner: PhoenixMiner " + localMiner;
+        }
 
-            Helpers.DebugConsole(txtDebug, "Checking for updates... ", "Updater");
-            Helpers.DebugConsole(txtDebug, "Local miner: " + localMiner, "Updater");
-            Helpers.DebugConsole(txtDebug, "Latest miner: " + latestMiner, "Updater");
+        bool checkConfig()
+        {
+            Helpers.DebugConsole(txtDebug, "Searching for previous configuration files...", "Config");
+            Version _old = new Version("0.0.0.0");
+
+            try
+            {
+                string[] localAppdata = Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\MinerWatchDog3");
+                string allConfigsPath = localAppdata[0];
+                string configFilename = "\\user.config";
+                string oldConfigPath = "";
+                string newConfigPath = "";
+
+                foreach (string version in Directory.GetDirectories(allConfigsPath))
+                {
+                    Version _current = new Version(version.Split('\\').Last());
+
+                    if (_current.CompareTo(_old) > 0 && _current != Assembly.GetExecutingAssembly().GetName().Version)
+                    {
+                        _old = _current;
+                        oldConfigPath = version;
+                    }
+                    else if (_current == Assembly.GetExecutingAssembly().GetName().Version && File.Exists(version + configFilename))
+                    {
+                        newConfigPath = version + configFilename;
+                        Helpers.DebugConsole(txtDebug, String.Format("Config for current exists at local: \\{0}{1}", _current, configFilename), "Config");
+                    }
+                }
+
+                Helpers.DebugConsole(txtDebug, oldConfigPath == "" ? "No previous installations found, new version?" : "Found previous installation, config file at: " + oldConfigPath, "Config");
+
+                if (oldConfigPath != "" && !File.Exists(newConfigPath))
+                {
+                    Helpers.DebugConsole(txtDebug, "ACTION REQUIRED!");
+
+                    try
+                    {
+                        newConfigPath = newConfigPath == "" ? newConfigPath = oldConfigPath.Replace(_old.ToString(), Assembly.GetExecutingAssembly().GetName().Version.ToString()) : newConfigPath;
+                        Helpers.DebugConsole(txtDebug, "Creating directory at: " + newConfigPath, "Config");
+                        Directory.CreateDirectory(newConfigPath);
+                        Helpers.DebugConsole(txtDebug, String.Format("Copying {0} -> {1}", oldConfigPath + configFilename, newConfigPath + configFilename), "Config");
+                        File.Copy(oldConfigPath + configFilename, newConfigPath + configFilename, true);
+
+                        PreviousVersion = _old.ToString();
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Helpers.DebugConsole(txtDebug, "\nStacktrace:\n" + ex.GetBaseException(), "Config", 2);
+                        return false;
+                    }
+                }
+                else
+                {
+                    Helpers.DebugConsole(txtDebug, "No action required for config imports because config exists on latest version.", "Config");
+                    return false;
+                }
+
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                Helpers.DebugConsole(txtDebug, ex.Message, "Config", 2);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Helpers.DebugConsole(txtDebug, "\nStacktrace:\n" + ex.GetBaseException(), "Config", 2);
+                return false;
+            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -730,6 +791,7 @@ namespace ModernMinerWatchDog
                 {
                     Helpers.Debug = true;
                     arg = args[1];
+                    Helpers.DebugConsole(txtDebug, "Application instance starting in debug mode!");
                 }
             }
             else
@@ -737,8 +799,7 @@ namespace ModernMinerWatchDog
                 Helpers.Debug = false;
             }
 
-            Helpers.DebugConsole(txtDebug, "Application loaded successfully.");
-
+            ConfigImported = checkConfig();
             checkUpdates();
 
             if (Properties.Settings.Default.StartMinimized && Properties.Settings.Default.MinimizeToTray)
@@ -763,7 +824,7 @@ namespace ModernMinerWatchDog
             }
             catch (Exception)
             {
-                publishVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                publishVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             }
             finally
             {
@@ -845,7 +906,12 @@ namespace ModernMinerWatchDog
             Helpers.DebugConsole(txtDebug, "Gaming Hotkey -> " + Properties.Settings.Default.HotkeyGaming, "Settings");
             Helpers.DebugConsole(txtDebug, "Mining Hotkey -> " + Properties.Settings.Default.HotkeyMining, "Settings");
 
-            Helpers.DebugConsole(txtDebug, "Settings loaded successfully.", "Settings");
+            Helpers.DebugConsole(txtDebug, "Settings loaded successfully, application has fully loaded all components.", "Settings");
+
+            if (ConfigImported)
+            {
+                MessageBox.Show(String.Format("Config imported from your previous installation: ({0})", PreviousVersion), "Config Importer");
+            }
         }
 
         #region "// MINER PAGE //"
@@ -1334,8 +1400,8 @@ namespace ModernMinerWatchDog
 
                 checkUpdates();
 
-                MessageBox.Show("Note:\n\nIf you notice significant differences in performance (ex. unusually high ram usage, far lower hashrate, etc.) " +
-                    "or you notice the watchdog is not working as intended after the auto-update, simply restart.");
+                MessageBox.Show("If you notice significant differences in performance (ex. unusually high ram usage, far lower hashrate, etc.) " +
+                    "or you notice the watchdog is not working as intended after the auto-update, simply restart.", "[Important]", MessageBoxButton.OK, MessageBoxImage.Exclamation);
 
                 miner.Start();
                 Thread tProcMiner = new Thread(refreshMinerOutput);

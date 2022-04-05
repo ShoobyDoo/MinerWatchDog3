@@ -12,7 +12,7 @@ namespace ModernMinerWatchDog.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.10.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.1.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -25,39 +25,7 @@ namespace ModernMinerWatchDog.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<ArrayOfString xmlns:xsi=\"http://www.w3." +
-            "org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n  <s" +
-            "tring>RocketLeague</string>\r\n  <string>Discord</string>\r\n</ArrayOfString>")]
-        public global::System.Collections.Specialized.StringCollection Allowed {
-            get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["Allowed"]));
-            }
-            set {
-                this["Allowed"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
-<ArrayOfString xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
-  <string>NewWorld</string>
-  <string>Valheim</string>
-  <string>StarCitizen</string>
-  <string>ForzaHorizon5</string>
-</ArrayOfString>")]
-        public global::System.Collections.Specialized.StringCollection Prevented {
-            get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["Prevented"]));
-            }
-            set {
-                this["Prevented"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:/path to miner.exe here")]
         public string MinerPath {
             get {
                 return ((string)(this["MinerPath"]));
@@ -208,6 +176,32 @@ namespace ModernMinerWatchDog.Properties {
             }
             set {
                 this["HotkeyMining"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<ArrayOfString xmlns:xsd=\"http://www.w3." +
+            "org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" />")]
+        public global::System.Collections.Specialized.StringCollection Allowed {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["Allowed"]));
+            }
+            set {
+                this["Allowed"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<ArrayOfString xmlns:xsd=\"http://www.w3." +
+            "org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" />")]
+        public global::System.Collections.Specialized.StringCollection Prevented {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["Prevented"]));
+            }
+            set {
+                this["Prevented"] = value;
             }
         }
     }
