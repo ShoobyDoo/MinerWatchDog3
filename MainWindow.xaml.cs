@@ -42,6 +42,9 @@ namespace ModernMinerWatchDog
         public bool UpdateAvailable { get; set; }
         public bool ConfigImported { get; set; }
         public string PreviousVersion { get; set; }
+        public int InvalidShares { get; set; }
+        
+        public const int MAX_INVALID_SHARES = 15;
 
         public MainWindow()
         {
@@ -56,7 +59,7 @@ namespace ModernMinerWatchDog
             _minerUpdater.Tick += delegate { checkUpdates(); };
             _minerUpdater.Enabled = true;
 
-            _settingsTimer.Interval = 1500;
+            _settingsTimer.Interval = 2000;
             _settingsTimer.Tick += delegate { if (btnSaveSettings.Content.ToString() == "Saved!") { btnSaveSettings.Content = "Save"; } };
             _settingsTimer.Enabled = true;
 
@@ -108,6 +111,18 @@ namespace ModernMinerWatchDog
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 DragMove();
+            }
+        }
+
+        private void TopBar_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (Application.Current.MainWindow.WindowState != WindowState.Maximized)
+            {
+                Application.Current.MainWindow.WindowState = WindowState.Maximized;
+            }
+            else
+            {
+                Application.Current.MainWindow.WindowState = WindowState.Normal;
             }
         }
 
@@ -185,14 +200,14 @@ namespace ModernMinerWatchDog
 
                     if (gamesList.Contains(p.ProcessName))
                     {
-                        processStatus = String.Format("A GPU intensive program ({0}) is currently running...", p.ProcessName);
+                        processStatus = String.Format("A GPU intensive program [{0}] is currently running...", p.ProcessName);
                         processList += " " + p.Id.ToString().PadRight(20) + p.ProcessName + "\n";
                         gamesAllowed = false;
                         break;
                     }
                     else if (gamesIgnored.Contains(p.ProcessName))
                     {
-                        processStatus = String.Format("A Non-GPU intensive program ({0}) is currently running...", p.ProcessName);
+                        processStatus = String.Format("A Non-GPU intensive program [{0}] is currently running...", p.ProcessName);
                         processList += " " + p.Id.ToString().PadRight(20) + p.ProcessName + "\n";
                         gamesAllowed = true;
                         parentFound = true;
@@ -230,12 +245,12 @@ namespace ModernMinerWatchDog
                         MinerRunning = false;
                         minerStatus = "Miner is currently: OFFLINE 🔴";
 
+                        this.Dispatcher.Invoke(() => { Helpers.DebugConsole(txtDebug, "Experimental: Attempting hot-key based clock preset for non-miner related task..."); });
+
                         string presetMiner = switchMinerProfile(Properties.Settings.Default.HotkeyGaming);
 
                         this.Dispatcher.Invoke(() =>
                         {
-                            Helpers.DebugConsole(txtDebug, "Experimental: Attempting hot-key based clock preset for non-miner related task...");
-
                             TextRange document = new TextRange(
                                 // TextPointer to the start of content in the RichTextBox.
                                 txtConsole.Document.ContentEnd,
@@ -243,7 +258,7 @@ namespace ModernMinerWatchDog
                                 txtConsole.Document.ContentEnd
                             );
                             //TextRange document = new TextRange(txtConsole.Document.ContentStart, txtConsole.Document.ContentEnd);
-                            document.Text += "\nMinerWatchDog: Miner has been automatically stopped due to a gpu-intensive program\nPresetController: (Context: " + presetMiner + ")\n";
+                            document.Text += "\nMinerWatchDog: Miner has been automatically stopped due to a gpu-intensive program\nMinerWatchDog: " + presetMiner + "\n";
                             document.ApplyPropertyValue(ForegroundProperty, new SolidColorBrush(Color.FromRgb(23, 162, 184)));
                             txtConsole.ScrollToEnd();
 
@@ -274,16 +289,8 @@ namespace ModernMinerWatchDog
                             MinerRunning = true;
                             minerStatus = "Miner is currently: ONLINE 🔴";
 
-                            string presetMiner = switchMinerProfile(Properties.Settings.Default.HotkeyMining);
-
                             this.Dispatcher.Invoke(() => 
                             {
-                                Helpers.DebugConsole(txtDebug, "Experimental: Attempting hot-key based clock preset for non-miner related task...");
-                                TextRange document = new TextRange(txtConsole.Document.ContentEnd, txtConsole.Document.ContentEnd);
-
-                                document.Text += "MinerWatchDog: Miner has been automatically started\nPresetController: (Context: " + presetMiner + ")\n";
-                                document.ApplyPropertyValue(ForegroundProperty, new SolidColorBrush(Color.FromRgb(23, 162, 184)));
-
                                 Helpers.DebugConsole(txtDebug, "Miner process started (" + Properties.Settings.Default.MinerPath + ")", "Main");
 
                                 icoTrayIcon.BalloonTipText = "Miner started: Blacklisted program(s) are no longer running.";
@@ -398,6 +405,20 @@ namespace ModernMinerWatchDog
                     else if (minerOutputLine.Text.StartsWith("GPU1:") || minerOutputLine.Text.StartsWith("GPUs power:"))
                     {
                         minerOutputLine.ApplyPropertyValue(ForegroundProperty, Brushes.Orchid);
+                        
+                        // TODO: dag is generated, run preset ready
+                        if (minerOutputLine.Text.Contains("DAG generated"))
+                        {
+                            this.Dispatcher.Invoke(() =>
+                            {
+                                Helpers.DebugConsole(txtDebug, "Experimental: Attempting hot-key based clock preset for non-miner related task...");
+                                string presetMiner = switchMinerProfile(Properties.Settings.Default.HotkeyMining);
+                                TextRange documentEndLine = new TextRange(txtConsole.Document.ContentEnd, txtConsole.Document.ContentEnd);
+
+                                documentEndLine.Text += "MinerWatchDog: " + presetMiner + "\n";
+                                documentEndLine.ApplyPropertyValue(ForegroundProperty, new SolidColorBrush(Color.FromRgb(23, 162, 184)));
+                            });
+                        }
                     }
                     else if (minerOutputLine.Text.StartsWith("Eth: GPU1:") || minerOutputLine.Text.StartsWith("Eth: Share") || minerOutputLine.Text.StartsWith("Eth: Connected"))
                     {
@@ -411,14 +432,29 @@ namespace ModernMinerWatchDog
                         minerOutputLine.Text.StartsWith("Eth: Incorrect shares") || 
                         minerOutputLine.Text.StartsWith("Eth: Maximum") || 
                         minerOutputLine.Text.StartsWith("Eth: Average") || 
-                        minerOutputLine.Text.StartsWith("Eth: Effective")
-                        )
+                        minerOutputLine.Text.StartsWith("Eth: Effective"))
                     {
                         minerOutputLine.ApplyPropertyValue(ForegroundProperty, Brushes.Yellow);
                     }
                     else if (minerOutputLine.Text.StartsWith("Eth: Incorrect"))
                     {
                         minerOutputLine.ApplyPropertyValue(ForegroundProperty, Brushes.Red);
+                        InvalidShares += 1;
+
+                        if (InvalidShares > MAX_INVALID_SHARES)
+                        {
+                            TextRange documentEndLine = new TextRange(txtConsole.Document.ContentEnd, txtConsole.Document.ContentEnd);
+
+                            documentEndLine.Text += "MinerWatchDog: High number of invalid shares were detected...\n";
+                            documentEndLine.Text += "MinerWatchDog: Attempting to restart automatically...\n";
+                            documentEndLine.ApplyPropertyValue(ForegroundProperty, new SolidColorBrush(Color.FromRgb(23, 162, 184)));
+
+                            miner.Kill();
+                            miner.Start();
+
+                            InvalidShares = 0;
+                        }
+
                     }
                     else
                     {
@@ -431,8 +467,6 @@ namespace ModernMinerWatchDog
                         document.Text = "" + Environment.NewLine;
                         txtConsole.AppendText("MinerWatchDog: Console output was cleared at 10,000 characters to save memory\n");
                         document.ApplyPropertyValue(ForegroundProperty, new SolidColorBrush(Color.FromRgb(23, 162, 184)));
-
-                        //Helpers.DebugConsole(txtDebug, "", "Main");
                     }
 
                     //txtConsole.SelectionStart = txtConsole.SelectAll();
@@ -798,6 +832,21 @@ namespace ModernMinerWatchDog
             {
                 Helpers.Debug = false;
             }
+
+            TextRange document = new TextRange(
+                // TextPointer to the start of content in the RichTextBox.
+                txtConsole.Document.ContentStart,
+                // TextPointer to the end of content in the RichTextBox.
+                txtConsole.Document.ContentEnd
+            );
+
+            document.Text = String.Format(
+                "MinerWatchDog {0} by Doomlad {1} - ({2})\n\n", 
+                Assembly.GetExecutingAssembly().GetName().Version.ToString(), 
+                DateTime.Now.Year, 
+                Helpers.Debug ? "debug" : "release");
+
+            document.ApplyPropertyValue(ForegroundProperty, Brushes.LightGray);
 
             ConfigImported = checkConfig();
             checkUpdates();
@@ -1423,6 +1472,5 @@ namespace ModernMinerWatchDog
             Properties.Settings.Default.Save();
             txtHkMining.Text = Properties.Settings.Default.HotkeyMining;
         }
-
     }
 }

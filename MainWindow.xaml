@@ -121,19 +121,21 @@
                 </Grid>
             </Border>
 
-
-            <Border Grid.ColumnSpan="2"
+            <ContentControl Grid.ColumnSpan="2" 
+                            MouseDoubleClick="TopBar_DoubleClick">
+                
+                <Border Grid.ColumnSpan="2"
                     Background="#201f2e"
                     Margin="5,5,5,0"
                     CornerRadius="5,5,5,0"
                     MouseDown="Border_MouseDown">
 
-                <StackPanel HorizontalAlignment="Right"
+                    <StackPanel HorizontalAlignment="Right"
                             VerticalAlignment="Top"
                             Orientation="Horizontal"
                             Margin="0">
 
-                    <Button Width="45"
+                        <Button Width="45"
                             Height="35"
                             Background="Transparent"
                             Foreground="Gray"
@@ -142,11 +144,11 @@
                             Click="ButtonMinimize_Click"
                             Style="{DynamicResource WindowButtonTemplate}">
 
-                        <Image Source="Images/minimize.png"/>
+                            <Image Source="Images/minimize.png"/>
 
-                    </Button>
+                        </Button>
 
-                    <Button Width="45"
+                        <Button Width="45"
                             Height="35" 
                         Background="Transparent"
                         Foreground="Gray"
@@ -155,11 +157,11 @@
                         Click="ButtonMaximize_Click"
                             Style="{DynamicResource WindowButtonTemplate}">
 
-                        <Image Height="25" Source="Images/maximize.png"/>
+                            <Image Height="25" Source="Images/maximize.png"/>
 
-                    </Button>
+                        </Button>
 
-                    <Button Width="45"
+                        <Button Width="45"
                             Height="35" 
                             Background="Transparent" 
                             Foreground="Gray"
@@ -168,14 +170,14 @@
                             Click="ButtonExit_Click" 
                             Style="{DynamicResource CloseButtonTemplate}">
 
-                        <Image Height="25" Source="Images/close.png"/>
+                            <Image Height="25" Source="Images/close.png"/>
 
-                    </Button>
-                    
-                </StackPanel>
-            </Border>
+                        </Button>
 
-
+                    </StackPanel>
+                </Border>
+            </ContentControl>
+            
             <TextBlock Grid.Row="0"
                        Text="Miner WatchDog 3"
                        VerticalAlignment="Center"
