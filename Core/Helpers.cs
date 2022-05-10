@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,8 @@ namespace ModernMinerWatchDog.Core
     class Helpers
     {
         public static bool Debug { get; set; }
+        public static bool Message = true;
+
         /// <summary>
         /// Prints console messages to debug tab textbox.
         /// <br>1=WARN</br>
@@ -43,9 +46,21 @@ namespace ModernMinerWatchDog.Core
             }
             else
             {
-                control.Text = "Program is running in production mode, debugging messages are disabled.\nRun program with the --debug flag to enable debugging.";
-            }
+                if (Message) { control.Text = "Run program with the --debug flag to enable in-app debugging."; Message = false; }
 
+                string logname = String.Format("logfile-{0}.txt", DateTime.Now.ToString("MMddyyyy"));
+                string error = "DEBUG LOGS\n----------\n";
+
+                string folderLogs = Environment.CurrentDirectory + @"\Logs";
+                string folderLogsDebug = Environment.CurrentDirectory + @"\Logs\debug";
+                string debuglog = folderLogsDebug + @"\" + logname;
+
+                if (!Directory.Exists(folderLogs)) { Directory.CreateDirectory(folderLogs); }
+                if (!Directory.Exists(folderLogsDebug)) { Directory.CreateDirectory(folderLogsDebug); }
+
+                if (!File.Exists(debuglog)) { using (StreamWriter sw = File.CreateText(debuglog)) { sw.WriteLine(error); } }
+                using (StreamWriter sw = File.AppendText(debuglog)) { sw.WriteLine(prefix + message); }
+            }
         }
     }
 }

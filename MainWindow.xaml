@@ -8,12 +8,11 @@
         Title="Miner WatchDog 3"
         WindowStartupLocation="CenterScreen"
         Height="700" Width="1100"
-        MinHeight="600" MinWidth="900"
+        MinHeight="650" MinWidth="1050"
         WindowStyle="SingleBorderWindow"
         ResizeMode="CanResize"
         Background="Transparent"
         AllowsTransparency="False" 
-        Activated="Window_Activated" 
         Loaded="Window_Loaded" 
         Icon="Images/miner-icon.ico"
         SizeChanged="Window_SizeChanged">
@@ -25,7 +24,7 @@
                       UseAeroCaptionButtons="False"
                       ResizeBorderThickness="7"/>
     </WindowChrome.WindowChrome>
-    
+
     <Border Background="#272537"
             CornerRadius="10">
 
@@ -60,11 +59,13 @@
                     </Grid.RowDefinitions>
 
                     <Separator Grid.Row="1"
+                               Background="#59566c"
+                               Width="200"
                                VerticalAlignment="Top"
                                Margin="5,5"/>
 
                     <Grid Grid.Row="1">
-                        
+
                         <Grid.RowDefinitions>
                             <RowDefinition/>
                             <RowDefinition/>
@@ -106,7 +107,7 @@
                                    FontFamily="{StaticResource Manrope}" 
                                    FontSize="13"
                                    FontWeight="Regular"/>
-                        
+
                         <TextBlock VerticalAlignment="Center"
                                    Grid.Row="2"
                                    Margin="10,5,5,10"
@@ -115,15 +116,31 @@
                                    Text="WatchDog: 0.0.0.0"
                                    FontFamily="{StaticResource Manrope}" 
                                    FontSize="13"
-                                   FontWeight="Regular"/>
-                        
+                                   FontWeight="Regular" 
+                                   MouseLeave="txtVersion_MouseLeave" 
+                                   MouseEnter="txtVersion_MouseEnter" 
+                                   MouseDown="txtVersion_MouseDown"
+                                   ToolTipService.ShowDuration="60000">
+
+                            <TextBlock.ToolTip>
+                                <ToolTip x:Name="ttWdUpdateChangelog"
+                                         ToolTipService.ShowDuration="60000"
+                                         MaxWidth="500">
+
+                                    <TextBlock x:Name="tbTTWdUpdateChangelog"
+                                               Text="You're on the latest version."
+                                               TextWrapping="Wrap"/>
+                                </ToolTip>
+                            </TextBlock.ToolTip>
+                        </TextBlock>
+
                     </Grid>
                 </Grid>
             </Border>
 
             <ContentControl Grid.ColumnSpan="2" 
                             MouseDoubleClick="TopBar_DoubleClick">
-                
+
                 <Border Grid.ColumnSpan="2"
                     Background="#201f2e"
                     Margin="5,5,5,0"
@@ -137,6 +154,7 @@
 
                         <Button Width="45"
                             Height="35"
+                                VerticalAlignment="Center"
                             Background="Transparent"
                             Foreground="Gray"
                             BorderThickness="0"
@@ -150,6 +168,7 @@
 
                         <Button Width="45"
                             Height="35" 
+                                VerticalAlignment="Center"
                         Background="Transparent"
                         Foreground="Gray"
                         BorderThickness="0"
@@ -163,6 +182,7 @@
 
                         <Button Width="45"
                             Height="35" 
+                                VerticalAlignment="Center"
                             Background="Transparent" 
                             Foreground="Gray"
                             BorderThickness="0"
@@ -177,7 +197,7 @@
                     </StackPanel>
                 </Border>
             </ContentControl>
-            
+
             <TextBlock Grid.Row="0"
                        Text="Miner WatchDog 3"
                        VerticalAlignment="Center"
@@ -186,7 +206,8 @@
                        Foreground="#EAECEB"
                        FontSize="20" 
                        FontFamily="{StaticResource Manrope}"
-                        FontWeight="Bold"/>
+                        FontWeight="Bold"
+                       IsHitTestVisible="False"/>
 
 
             <Image Grid.Row="1" Source="Images/miner-icon.png" Margin="5"/>
@@ -194,7 +215,18 @@
 
             <StackPanel Grid.Row="2">
 
-                <RadioButton Content="Miner"
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+
+
+                    <RadioButton Content="Miner"
+                                 Grid.Row="0"
                                 x:Name="rbMiner"
                                 Height="50"
                                 Foreground="#EAECEB"
@@ -204,7 +236,18 @@
                                 FontFamily="{StaticResource Manrope}"
                                 Checked="rbMiner_Checked"/>
 
-                <RadioButton Content="Settings"
+                    <Image Source="/Images/miner.png"
+                           Width="25"
+                           Height="25"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center"
+                           Margin="33,0"
+                           IsHitTestVisible="False"/>
+
+
+
+                    <RadioButton Content="Settings"
+                                 Grid.Row="1"
                                 x:Name="rbSettings"
                                 Height="50"
                              FontWeight="Bold"
@@ -214,7 +257,19 @@
                                 FontFamily="{StaticResource Manrope}"
                                 Checked="rbSettings_Checked"/>
 
-                <RadioButton Content="About"
+                    <Image Source="/Images/settings.png"
+                           Width="30"
+                           Height="30"
+                           Grid.Row="1"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center"
+                           Margin="30,0"
+                           IsHitTestVisible="False"/>
+
+
+
+                    <RadioButton Content="About"
+                                 Grid.Row="2"
                              x:Name="rbAbout"
                              FontWeight="Bold"
                              Height="50"
@@ -224,7 +279,17 @@
                              FontFamily="{StaticResource Manrope}" 
                              Checked="rbAbout_Checked"/>
 
-                <RadioButton Content="Exit"
+                    <Image Source="/Images/about.png"
+                           Width="30"
+                           Height="30"
+                           Grid.Row="2"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center"
+                           Margin="30,0,0,0"
+                           IsHitTestVisible="False"/>
+
+                    <RadioButton Content="Exit"
+                                 Grid.Row="3"
                                 x:Name="rbExit"
                              FontWeight="Bold"
                                 Height="50"
@@ -233,6 +298,18 @@
                                 Style="{StaticResource MenuButtonTheme}" 
                                 FontFamily="{StaticResource Manrope}" 
                              Checked="rbExit_Checked" />
+
+                    <Image Source="/Images/exit.png"
+                           Width="30"
+                           Height="30"
+                           Grid.Row="3"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center"
+                           Margin="30,0,0,0"
+                           IsHitTestVisible="False"/>
+
+                </Grid>
+
 
             </StackPanel>
 
@@ -288,7 +365,7 @@
             <!--#endregion-->
 
             <!-- MINER GRID CONTENT -->
-            <Grid x:Name="gridMiner" Visibility="Visible" Grid.Column="1" Grid.Row="2">
+            <Grid x:Name="gridMiner" Visibility="Hidden" Grid.Column="1" Grid.Row="2">
 
                 <Grid.RowDefinitions>
                     <RowDefinition Height="50"/>
@@ -356,95 +433,18 @@
                                      FontFamily="Consolas"
                                      Foreground="#EAECEB" 
                                      Background="Transparent"
-                                     FontSize="14"
-                                     IsReadOnly="True" 
-                                     TextChanged="txtConsole_TextChanged"/>
-
-                        <!--#region EXPERIMENTAL START/STOP/OVERRIDE -->
-                        <!--<Grid Grid.Row="1">
-
-                            <Grid.RowDefinitions>
-                                <RowDefinition/>
-                            </Grid.RowDefinitions>
-
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-
-                            <Button Grid.Row="1" 
-                                    Margin="5,0,2.5,5"
-                                    x:Name="btnMinerStart"
-                                    HorizontalAlignment="Stretch"
-                                    Background="#353340"
-                                    Foreground="#EAECEB"
-                                    Content="Start Miner"
-                                    FontFamily="{StaticResource Manrope}"
-                                    FontSize="16"
-                                    Style="{DynamicResource SettingsButton}"                                   Click="btnMinerStart_Click">
-
-                                <Button.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="10"/>
-                                    </Style>
-                                </Button.Resources>
-
-                            </Button>
-
-                            <Button Grid.Row="1"
-                                    Grid.Column="1"
-                                    Margin="2.5,0,2.5,5"
-                                    x:Name="btnMinerStop"
-                                    HorizontalAlignment="Stretch"
-                                    Background="#353340"
-                                    Foreground="#EAECEB"
-                                    Content="Stop Miner"
-                                    FontFamily="{StaticResource Manrope}"
-                                    FontSize="16"
-                                    Style="{DynamicResource SettingsButton}"                                   Click="btnMinerStop_Click">
-
-                                <Button.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="10"/>
-                                    </Style>
-                                </Button.Resources>
-
-                            </Button>
-
-                            <Button Grid.Row="1"
-                                    Grid.Column="2"
-                                    Margin="2.5,0,5,5"
-                                    x:Name="btnMinerOverride"
-                                    HorizontalAlignment="Stretch"
-                                    Background="#353340"
-                                    Foreground="#EAECEB"
-                                    Content="Reset Override"
-                                    FontFamily="{StaticResource Manrope}"
-                                    FontSize="16"
-                                    Style="{DynamicResource SettingsButton}" Click="btnMinerOverride_Click">
-
-                                <Button.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="10"/>
-                                    </Style>
-                                </Button.Resources>
-
-                            </Button>
-
-                        </Grid>-->
-                        <!--#endregion-->
-
+                                     FontSize="15"
+                                     IsReadOnly="True"/>
                     </Grid>
                 </Grid>
-                
+
                 <!-- MINER PROCESSES GRID -->
                 <Grid x:Name="gridMinerProcesses" Visibility="Hidden" Grid.Row="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="50"/>
                         <RowDefinition />
                     </Grid.RowDefinitions>
-                    
+
                     <Border Grid.Row="1"
                         Background="#141419"
                         Margin="5"
@@ -471,7 +471,7 @@
                                  FontFamily="Consolas"
                                  FontSize="16" 
                                  TextChanged="txtProcessesSearch_TextChanged"/>
-                        
+
                         <TextBlock IsHitTestVisible="False"
                                        Text="Search"
                                        VerticalAlignment="Center"
@@ -494,9 +494,9 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
-                        
+
                     </Grid>
-                    
+
                     <TextBox Grid.Row="1"
                            x:Name="txtProcesses"
                            x:FieldModifier="public"
@@ -519,7 +519,7 @@
                         Background="#141419"
                         Margin="5"
                         CornerRadius="5"/>
-                    
+
                     <TextBox Grid.Row="0"
                                x:Name="txtDebug"
                              VerticalScrollBarVisibility="Visible"
@@ -537,7 +537,7 @@
             </Grid>
 
             <!-- SETTINGS GRID CONTENT -->
-            <Grid x:Name="gridSettings" Visibility="Hidden" Grid.Column="1" Grid.Row="2">
+            <Grid x:Name="gridSettings" Visibility="Visible" Grid.Column="1" Grid.Row="2">
 
                 <Grid.RowDefinitions>
                     <RowDefinition Height="50"/>
@@ -595,7 +595,7 @@
                 <!--#endregion-->
 
                 <!--#region SETTINGS / GENERAL -->
-                <Grid Grid.Row="1" Visibility="Visible" x:Name="gridSettingsGeneral"  Background="Transparent" Margin="0,5">
+                <Grid Grid.Row="1" Visibility="Hidden" x:Name="gridSettingsGeneral"  Background="Transparent" Margin="0,5">
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
@@ -817,7 +817,7 @@
                         </Grid.ColumnDefinitions>
 
                         <Border Grid.Row="2" 
-                            Margin="5,5,5,5" 
+                            Margin="5"
                             CornerRadius="10" 
                             Background="#353340"/>
 
@@ -892,11 +892,6 @@
                                Style="{StaticResource ModernTextbox}"
                                BorderThickness="0"/>
                     </Grid>
-
-
-
-
-                    
                     <!--#endregion-->
 
                 </Grid>
@@ -1095,7 +1090,8 @@
                                FontSize="14"
                                Foreground="#EAECEB"
                              Background="#353340"
-                               BorderThickness="0">
+                               BorderThickness="0" 
+                             TextChanged="txtMinerPath_TextChanged">
 
                         <TextBox.Resources>
                             <Style TargetType="Border">
@@ -1187,8 +1183,6 @@
                         </TextBox.Resources>
                     </TextBox>
 
-
-
                 </Grid>
                 <!--#endregion-->
 
@@ -1205,10 +1199,9 @@
                         <RowDefinition Height="35"/>
                         <RowDefinition Height="35"/>
                         <RowDefinition Height="35"/>
-                        <RowDefinition Height="10"/>
-                        <RowDefinition Height="35"/>
                         <RowDefinition Height="35"/>
                         <RowDefinition Height="10"/>
+                        <RowDefinition Height="35"/>
                         <RowDefinition Height="35"/>
                         <RowDefinition Height="35"/>
                         <RowDefinition Height="35"/>
@@ -1216,16 +1209,20 @@
 
                     <TextBlock Grid.Row="0"
                                Grid.Column="0"
+                               Grid.ColumnSpan="3"
+                               TextAlignment="Center"
                                Margin="5"
                                Foreground="#EAECEB"
-                               Text="System Behavior"
+                               Text="Window"
                                FontSize="18"
                                FontWeight="Regular"
                                FontFamily="{StaticResource Manrope}"/>
 
                     <Separator VerticalAlignment="Bottom"
+                               Grid.Row="0"
                                Grid.ColumnSpan="3"
-                               Margin="5,0"/>
+                               Margin="375,0"
+                               Background="#59566c"/>
 
                     <!-- RUN AT STARTUP -->
                     <TextBlock Grid.Row="1"
@@ -1282,23 +1279,7 @@
                                FontSize="16"
                                FontFamily="{StaticResource Manrope}"/>
 
-                    <!-- WINDOW MANAGEMENT SEPERATOR -->
-                    <TextBlock Grid.Row="4"
-                               Grid.Column="0"
-                               Margin="5"
-                               Foreground="#EAECEB"
-                               Text="Window Management"
-                               FontSize="18"
-                               FontWeight="Regular"
-                               FontFamily="{StaticResource Manrope}"/>
-
-                    <Separator VerticalAlignment="Bottom"
-                               Grid.Row="4"
-                               Grid.ColumnSpan="3"
-                               Margin="5,0"/>
-
-                    <!-- MINIMIZE TO TRAY -->
-                    <TextBlock Grid.Row="5"
+                    <TextBlock Grid.Row="3"
                                Grid.Column="0"
                                Margin="5"
                                VerticalAlignment="Center"
@@ -1309,12 +1290,12 @@
 
                     <ToggleButton Margin="5"
                                   x:Name="btnMinimizeToTray"
-                                  Grid.Row="5"
+                                  Grid.Row="3"
                                   Grid.Column="1"
                                   Style="{StaticResource ToggleButtonTemplate}" Click="btnMinimizeToTray_Click">
                     </ToggleButton>
 
-                    <TextBlock Grid.Row="5"
+                    <TextBlock Grid.Row="3"
                                Grid.Column="2"
                                Margin="5"
                                x:Name="txtMinimizeToTray"
@@ -1325,12 +1306,146 @@
                                FontSize="16"
                                FontFamily="{StaticResource Manrope}"/>
 
+                    <TextBlock Grid.Row="5"
+                               Grid.Column="0"
+                               Grid.ColumnSpan="3"
+                               TextAlignment="Center"
+                               Margin="5"
+                               Foreground="#EAECEB"
+                               Text="Behavior"
+                               FontSize="18"
+                               FontWeight="Regular"
+                               FontFamily="{StaticResource Manrope}"/>
+
+                    <Separator VerticalAlignment="Bottom"
+                               Grid.Row="5"
+                               Grid.ColumnSpan="3"
+                               Margin="375,0"
+                               Background="#59566c"/>
+
+                    <TextBlock Grid.Row="6"
+                               Grid.Column="0"
+                               Margin="5"
+                               VerticalAlignment="Center"
+                               Foreground="#EAECEB"
+                               Text="Check for Updates"
+                               FontSize="16"
+                               FontFamily="{StaticResource Manrope}"/>
+
+                    <TextBlock Grid.Row="6"
+                               Grid.Column="1"
+                               Margin="5"
+                               VerticalAlignment="Center"
+                               Foreground="#EAECEB"
+                               Text="Every:"
+                               HorizontalAlignment="Center"
+                               FontSize="16"
+                               FontFamily="{StaticResource Manrope}"/>
+
+                    <Grid Grid.Row="6"
+                          Grid.Column="2"
+                          Margin="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="60"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox Style="{DynamicResource ComboBoxRoundedTheme}" 
+                              Background="#353340" 
+                                  x:Name="lbCheckUpdates" 
+                             Grid.Column="0"
+                              Foreground="#EAECEB"
+                             FontFamily="Manrope" 
+                             FontSize="16" 
+                              IsReadOnly="True" 
+                              SelectionChanged="lbCheckUpdates_SelectionChanged">
+
+                            <ComboBoxItem Content="01"></ComboBoxItem>
+                            <ComboBoxItem Content="02"></ComboBoxItem>
+                            <ComboBoxItem Content="04"></ComboBoxItem>
+                            <ComboBoxItem Content="08"></ComboBoxItem>
+                            <ComboBoxItem Content="12"></ComboBoxItem>
+                            <ComboBoxItem Content="24"></ComboBoxItem>
+
+                        </ComboBox>
+
+                        <TextBlock 
+                               Grid.Column="1"
+                               Margin="0"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               Foreground="#EAECEB"
+                               Text="hr(s)"
+                               FontSize="16"
+                               FontFamily="{StaticResource Manrope}"/>
+                    </Grid>
+
+                    <TextBlock Grid.Row="7"
+                               Grid.Column="0"
+                               Margin="5"
+                               VerticalAlignment="Center"
+                               Foreground="#EAECEB"
+                               Text="Maximum Incorrect Shares"
+                               FontSize="16"
+                               FontFamily="{StaticResource Manrope}"/>
+
+                    <TextBox Grid.Row="7"
+                               Grid.Column="2"
+                               x:Name="txtMaxIncorrectShares"
+                             VerticalAlignment="Stretch"
+                               Margin="5"
+                             Padding="0,2"
+                             HorizontalContentAlignment="Center"
+                               FontFamily="{StaticResource Manrope}"
+                               FontSize="16"
+                               Foreground="#EAECEB"
+                             Background="#353340"
+                               BorderThickness="0" 
+                             TextChanged="txtMaxIncorrectShares_TextChanged">
+
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+
+                    <TextBlock Grid.Row="9"
+                               Grid.Column="0"
+                               Margin="5"
+                               VerticalAlignment="Center"
+                               Foreground="#EAECEB"
+                               Text="Config Importer"
+                               FontSize="16"
+                               FontFamily="{StaticResource Manrope}"/>
+
+                    <Button Grid.Row="9"
+                            Grid.Column="2"
+                            Margin="5"
+                            VerticalAlignment="Center"
+                            x:Name="btnConfigImporter"
+                            Content="Launch"
+                            Background="#353340"
+                            Foreground="#EAECEB"
+                            FontFamily="{StaticResource Manrope}"
+                            FontSize="16"
+                            Style="{DynamicResource SettingsButton}" 
+                            Click="btnConfigImporter_Click">
+
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+
+                    </Button>
+
                 </Grid>
                 <!--#endregion-->
 
                 <!--#region SETTINGS / GPU OC/UC -->
-                <Grid Grid.Row="1" Visibility="Hidden" x:Name="gridSettingsGPU"  Background="Transparent" Margin="5">
-                    
+                <Grid Grid.Row="1" Visibility="Visible" x:Name="gridSettingsGPU"  Background="Transparent" Margin="5">
+
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="6*"/>
                         <ColumnDefinition Width="60"/>
@@ -1343,7 +1458,7 @@
                         <RowDefinition Height="35"/>
                         <RowDefinition Height="10"/>
                         <RowDefinition Height="35"/>
-                        <RowDefinition Height="35"/>
+                        <RowDefinition Height="70"/>
                         <RowDefinition Height="10"/>
 
                     </Grid.RowDefinitions>
@@ -1372,8 +1487,8 @@
                                FontSize="16"
                                FontFamily="{StaticResource Manrope}"/>
 
-                    
-                    
+
+
                     <User_Controls:HotkeyEditorControl Grid.Row="1"
                                                        Grid.Column="1"
                                                        Grid.ColumnSpan="2"
@@ -1393,7 +1508,7 @@
                                IsHitTestVisible="False"
                                FontSize="16"
                                FontFamily="{StaticResource Manrope}"/>
-                    
+
                     <TextBlock Grid.Row="2"
                                Grid.Column="0"
                                Margin="5"
@@ -1422,7 +1537,7 @@
                                IsHitTestVisible="False"
                                FontSize="16"
                                FontFamily="{StaticResource Manrope}"/>
-                    
+
                     <TextBlock Grid.Row="4"
                                Grid.Column="0"
                                Grid.ColumnSpan="3"
@@ -1442,14 +1557,15 @@
                                Grid.Column="0"
                                Margin="5"
                                VerticalAlignment="Center"
+                               TextWrapping="Wrap"
                                Foreground="#EAECEB"
-                               Text="Name: X1 Precision for EVGA Cards (Default/Filler)"
+                               Text="Hotkey based profile switching has only been tested with X1 Precision for EVGA; however any GPU software with a hotkey based profile system should work."
                                FontSize="16"
                                FontFamily="{StaticResource Manrope}"/>
 
                 </Grid>
                 <!--#endregion-->
-                
+
                 <!--#region (SAVE BUTTON)-->
                 <Button Grid.Row="3"
                             Grid.ColumnSpan="2"
@@ -1460,7 +1576,8 @@
                             Foreground="#EAECEB"
                             FontFamily="{StaticResource Manrope}"
                                FontSize="20"
-                            Style="{DynamicResource SettingsButton}" Click="btnSaveSettings_Click">
+                            Style="{DynamicResource SettingsButton}" 
+                        Click="btnSaveSettings_Click">
 
                     <Button.Resources>
                         <Style TargetType="Border">
@@ -1482,28 +1599,32 @@
                 </Grid.ColumnDefinitions>
 
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="80"/>
-                    <RowDefinition/>
-                    <RowDefinition Height="80"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="8*"/>
                 </Grid.RowDefinitions>
 
-                <Border Grid.RowSpan="3"
-                            Grid.ColumnSpan="2"
-                        Margin="60,80"
-                        CornerRadius="10"
-                        Background="#201f2e"/>
+                <Border Grid.Row="0" 
+                        Margin="5,0,5,0" 
+                        Grid.ColumnSpan="2"
+                        CornerRadius="5"
+                        Background="#201f2e">
 
-                <Label Grid.Row="0"
-                           Content="About"
-                       Grid.ColumnSpan="2"
-                           FontFamily="{StaticResource Manrope}"
-                           HorizontalAlignment="Center"
-                       VerticalAlignment="Bottom"
-                           FontSize="20"
-                           FontWeight="Regular"
-                           Foreground="#EAECEB" Margin="0,0,0,20"/>
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Grid.Row="0">
 
-                <Grid Grid.Row="1" Grid.ColumnSpan="2">
+                        <RadioButton Content="About"
+                                     x:Name="rbAboutMain"
+                                     Height="50"
+                                     Foreground="#EAECEB"
+                                     FontSize="16"
+                                     IsChecked="True"
+                                     Style="{StaticResource HorizontalMenuButtonTheme}" 
+                                     FontFamily="{StaticResource Manrope}"/>
+                    </StackPanel>
+                </Border>
+
+                <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="5">
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
@@ -1511,142 +1632,352 @@
                     </Grid.ColumnDefinitions>
 
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="2.5*"/>
+                        <RowDefinition Height="35"/>
+                        <RowDefinition Height="125"/>
                         <RowDefinition Height="35"/>
                         <RowDefinition Height="35"/>
                         <RowDefinition Height="35"/>
                         <RowDefinition Height="35"/>
-                        <RowDefinition Height="2*"/>
+                        <RowDefinition Height="100"/>
+                        <RowDefinition Height="35"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0"
-                       Grid.Column="0"
+                               Grid.Column="0"
+                               Grid.ColumnSpan="3"
+                               TextAlignment="Center"
+                               Margin="5"
+                               Foreground="#EAECEB"
+                               Text="Miner WatchDog 3"
+                               FontSize="18"
+                               FontWeight="Regular"
+                               FontFamily="{StaticResource Manrope}"/>
+
+                    <Separator VerticalAlignment="Bottom"
+                               Grid.Row="0"
+                               Grid.ColumnSpan="3"
+                               Margin="375,0"
+                               Background="#59566c"/>
+
+
+                    <TextBox Grid.Row="1"
+                                Grid.Column="0"
                            Grid.ColumnSpan="2"
-                           Text="This program constantly monitors all running processes for allowed/prevented applications to determine whether or not they should run along mining software."
+                               x:Name="tbAbout"
+                           Text="This program constantly monitors all running processes for user defined entries and will automatically start/stop crypto mining software. (Currently only PhoenixMiner is supported.)"
                            FontFamily="{StaticResource Manrope}"
                            HorizontalAlignment="Center"
-                           VerticalAlignment="Top"
+                           VerticalAlignment="Center"
+                               TextAlignment="Center"
                            TextWrapping="Wrap"
                            Margin="80,15"
-                           FontSize="15"
-                           FontWeight="Regular"
-                           Foreground="#EAECEB"/>
-
-                    <TextBlock Grid.Row="1"
-                       Grid.Column="1"
-                       x:Name="lblAuthor"
-                           Text="Author: Doomlad"
-                           FontFamily="{StaticResource Manrope}"
-                           HorizontalAlignment="Left"
-                           FontSize="15"
-                           FontWeight="Regular"
-                           Foreground="#EAECEB"
-                               Margin="10,0"
-                         Background="Transparent"
-                               VerticalAlignment="Center"/>
-
-                    <TextBlock Grid.Row="2"
-                       Grid.Column="1"
-                           Text="Contact: Doomlad#3374"
-                           FontFamily="{StaticResource Manrope}"
-                           HorizontalAlignment="Left"
-                               VerticalAlignment="Center"
-                       Margin="10,0"
-                           FontSize="15"
-                           FontWeight="Regular"
-                           Foreground="#EAECEB"/>
-
-                    <TextBlock Grid.Row="3"
-                       Grid.Column="1"
-                       x:Name="lblUpdates"
-                           Text="Updates: (Coming Soon)"
-                           FontFamily="{StaticResource Manrope}"
-                           HorizontalAlignment="Left"
-                               VerticalAlignment="Center"
-                       Margin="10,0"
-                           FontSize="15"
-                           FontWeight="Regular"
-                           Foreground="#EAECEB"/>
-
-                    <TextBox Grid.Row="4"
-                       Grid.Column="1"
-                           Text="Support: https://discord.gg/fzRK2Sb"
-                           FontFamily="{StaticResource Manrope}"
-                           HorizontalAlignment="Left"
-                       Margin="10,0"
-                               VerticalAlignment="Center"
-                           FontSize="15"
+                           FontSize="16"
                            FontWeight="Regular"
                            Foreground="#EAECEB"
                              Background="Transparent"
-                             BorderThickness="0"/>
-
-                    <TextBlock Grid.Row="1"
-                       Grid.Column="0"
-                           Text="Miner Arguments Reference Link(s)"
-                           FontFamily="{StaticResource Manrope}"
-                           HorizontalAlignment="Right"
-                       VerticalAlignment="Center"
-                           FontSize="15"
-                           FontWeight="Light"
-                           Foreground="#EAECEB" Margin="10,0"/>
+                            BorderThickness="0"
+                             IsReadOnly="True"
+                             IsHitTestVisible="False"/>
 
                     <TextBlock Grid.Row="2"
-                            Grid.Column="0"
-                               FontFamily="{StaticResource Manrope}"
+                       Grid.Column="0"
+                           Text="Author:"
+                           FontFamily="{StaticResource Manrope}"
                            HorizontalAlignment="Right"
-                       VerticalAlignment="Center"
+                           FontSize="16"
+                           FontWeight="Regular"
+                           Foreground="#EAECEB"
+                               Margin="5,0"
+                         Background="Transparent"
+                               VerticalAlignment="Center"/>
+
+                    <TextBox Grid.Row="2"
+                       Grid.Column="1"
+                           Text="Shoaib Ali"
+                           FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Left"
+                           FontSize="16"
+                           FontWeight="Regular"
+                             IsReadOnly="True"
+                           Foreground="#EAECEB"
+                               Margin="5,0"
+                         Background="Transparent"
+                               VerticalAlignment="Center"
+                             BorderThickness="0"/>
+
+                    <TextBlock Grid.Row="3"
+                       Grid.Column="0"
+                           Text="Contact:"
+                           FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Right"
+                           FontSize="16"
+                           FontWeight="Regular"
+                           Foreground="#EAECEB"
+                               Margin="5,0"
+                         Background="Transparent"
+                               VerticalAlignment="Center"/>
+
+                    <TextBox Grid.Row="3"
+                       Grid.Column="1"
+                           Text="Doomlad#3374"
+                           FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Left"
+                               VerticalAlignment="Center"
+                       Margin="5,0"
+                           FontSize="16"
+                           FontWeight="Regular"
+                           Foreground="#EAECEB"
+                             IsReadOnly="True"
+                             Background="#201f2e"
+                             BorderThickness="0"/>
+
+                    <TextBlock Grid.Row="4"
+                       Grid.Column="0"
+                           Text="Updates:"
+                           FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Right"
+                           FontSize="16"
+                           FontWeight="Regular"
+                           Foreground="#EAECEB"
+                               Margin="5,0"
+                         Background="Transparent"
+                               VerticalAlignment="Center"/>
+
+                    <Grid Grid.Row="4"
+                          Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="215"/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Row="4"
+                                Grid.Column="0"
+                                x:Name="txtUpdates"
+                                Text="You're on the latest version."
+                                FontFamily="{StaticResource Manrope}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Margin="5,0"
+                                FontSize="16"
+                                FontWeight="Regular"
+                                Foreground="LightSeaGreen"
+                                IsReadOnly="True"
+                                Background="Transparent"
+                                BorderThickness="0"/>
+
+                        <Button Grid.Row="3"
+                            Grid.Column="1"
+                            Margin="5"
+                            x:Name="btnSeeMore"
+                            Content="Update ⧉"
+                            Background="#353340"
+                            Foreground="#EAECEB"
+                            FontFamily="{StaticResource Manrope}"
+                               FontSize="16"
+                            Style="{DynamicResource SettingsButton}"
+                                IsEnabled="False" Click="btnSeeMore_Click">
+
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </Button.Resources>
+
+                        </Button>
+                    </Grid>
+
+                    <TextBlock Grid.Row="5"
+                       Grid.Column="0"
+                           Text="Support:"
+                           FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Right"
+                           FontSize="16"
+                           FontWeight="Regular"
+                           Foreground="#EAECEB"
+                               Margin="5,0"
+                         Background="Transparent"
+                               VerticalAlignment="Center"/>
+
+                    <Grid Grid.Row="5"
+                          Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="215"/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Row="5"
+                       Grid.Column="0"
+                                 x:Name="txtSupportLink"
+                           Text="https://discord.gg/fzRK2Sb"
+                           FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Left"
+                       Margin="5,0"
+                               VerticalAlignment="Center"
+                           FontSize="16"
+                           FontWeight="Regular"
+                           Foreground="#EAECEB"
+                             Background="#201f2e"
+                             BorderThickness="0"
+                                 IsReadOnly="True"/>
+
+                        <Button Grid.Row="3"
+                            Grid.Column="1"
+                            Margin="5"
+                            x:Name="btnOpenDiscord"
+                            Content="Invite ⧉"
+                            Background="#353340"
+                            Foreground="#EAECEB"
+                            FontFamily="{StaticResource Manrope}"
+                               FontSize="16"
+                            Style="{DynamicResource SettingsButton}" Click="btnOpenDiscord_Click">
+
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </Button.Resources>
+
+                        </Button>
+                    </Grid>
+
+                    <TextBlock Grid.Row="6"
+                       Grid.Column="0"
+                           Text="Donations:"
+                           FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Right"
+                           FontSize="16"
+                           FontWeight="Regular"
+                           Foreground="#EAECEB"
+                               Margin="5,10"
+                         Background="Transparent"
+                               VerticalAlignment="Top"/>
+
+                    <TextBox Grid.Row="6"
+                       Grid.Column="1"
+                           Text="ETH: 0x0880d432126d8093c62ff1aebe665936c2abaa83"
+                           FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Left"
+                       Margin="5,10"
+                               VerticalAlignment="Top"
                            FontSize="15"
                            FontWeight="Regular"
-                           Margin="10,0"
+                           Foreground="#EAECEB"
+                             IsReadOnly="True"
+                             Background="#201f2e"
+                             BorderThickness="0"/>
+
+                    <TextBox Grid.Row="6"
+                       Grid.Column="1"
+                           Text="LTC: ltc1q9vh2ejq7ulnr53dd7gpeaqdvdpvp386jjgykw8"
+                           FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Left"
+                       Margin="5,40"
+                               VerticalAlignment="Top"
+                           FontSize="15"
+                           FontWeight="Regular"
+                           Foreground="#EAECEB"
+                             IsReadOnly="True"
+                             Background="#201f2e"
+                             BorderThickness="0"/>
+
+                    <TextBlock Grid.Row="7"
+                       Grid.Column="0"
+                           Text="Attributions (Flaticon, vectorsmarket15):"
+                           FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Right"
+                           FontSize="15"
+                           FontWeight="Regular"
+                           Foreground="#EAECEB"
+                               Margin="5,0"
+                         Background="Transparent"
+                               VerticalAlignment="Top"/>
+
+                    <TextBlock Grid.Row="7"
+                            Grid.Column="1"
+                               FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Left"
+                       VerticalAlignment="Top"
+                           FontSize="15"
+                           FontWeight="Regular"
+                           Margin="5,0"
                            Foreground="#EAECEB">
-                        <!--https://phoenixminer.org/documentation/arguments/#pool-options-->
-                        
-                        <Hyperlink NavigateUri="https://phoenixminer.org/documentation/arguments/#pool-options"
+
+                        <Hyperlink NavigateUri="https://www.flaticon.com/free-icons/console"
                                    Foreground="#EAECEB"
-                                   x:Name="hlinkPhoenixMiner"
                                    RequestNavigate="Hyperlink_RequestNavigate">
-                            1. PhoenixMiner
+                            Console Icon
+                        </Hyperlink>
+                    </TextBlock>
+
+                    <TextBlock Grid.Row="7"
+                            Grid.Column="1"
+                               FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Left"
+                       VerticalAlignment="Top"
+                           FontSize="15"
+                           FontWeight="Regular"
+                           Margin="100,0,0,0"
+                           Foreground="#EAECEB">
+
+                        <Hyperlink NavigateUri="https://www.flaticon.com/free-icons/gear"
+                                   Foreground="#EAECEB"
+                                   RequestNavigate="Hyperlink_RequestNavigate">
+                            Gear Icon
+                        </Hyperlink>
+                    </TextBlock>
+
+                    <TextBlock Grid.Row="7"
+                            Grid.Column="1"
+                               FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Left"
+                       VerticalAlignment="Top"
+                           FontSize="15"
+                           FontWeight="Regular"
+                           Foreground="#EAECEB" Margin="170,0,0,0">
+
+                        <Hyperlink NavigateUri="https://www.flaticon.com/free-icons/personal-information"
+                                   Foreground="#EAECEB"
+                                   RequestNavigate="Hyperlink_RequestNavigate">
+                            Info Icon
+                        </Hyperlink>
+                    </TextBlock>
+
+                    <TextBlock Grid.Row="7"
+                            Grid.Column="1"
+                               FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Left"
+                       VerticalAlignment="Top"
+                           FontSize="15"
+                           FontWeight="Regular"
+                           Margin="234,0,0,0"
+                           Foreground="#EAECEB">
+
+                        <Hyperlink NavigateUri="https://www.flaticon.com/free-icons/exit"
+                                   Foreground="#EAECEB"
+                                   RequestNavigate="Hyperlink_RequestNavigate">
+                            Exit Icon
+                        </Hyperlink>
+                    </TextBlock>
+
+                    <TextBlock Grid.Row="7"
+                            Grid.Column="1"
+                               FontFamily="{StaticResource Manrope}"
+                           HorizontalAlignment="Left"
+                       VerticalAlignment="Top"
+                           FontSize="15"
+                           FontWeight="Regular"
+                           Margin="298,0,0,0"
+                           Foreground="#EAECEB">
+
+                        <Hyperlink NavigateUri="https://www.flaticon.com/free-icons/bitcoin"
+                                   Foreground="#EAECEB"
+                                   RequestNavigate="Hyperlink_RequestNavigate">
+                            Bitcoin Icon
                         </Hyperlink>
                     </TextBlock>
 
                 </Grid>
-
-                <StackPanel Grid.Column="1" Grid.Row="0" Grid.RowSpan="3" Grid.ColumnSpan="2" Height="150" Margin="0,15,0,0"  Orientation="Horizontal">
-                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Height="auto" Width="1"/>
-                </StackPanel>
-
-                <TextBlock Grid.Row="2"
-                       Grid.Column="0"
-                           Grid.ColumnSpan="2"
-                           Text="🔽 If you find this program helpful, consider donating 🔽"
-                           FontFamily="{StaticResource Manrope}"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Top"
-                           TextWrapping="Wrap"
-                           Margin="80,10"
-                           FontSize="15"
-                           FontWeight="Regular"
-                           Foreground="#EAECEB"/>
-
-                <TextBox Grid.Row="5"
-                       Grid.Column="0"
-                           Grid.ColumnSpan="2"
-                           Text="ETH: 0x0880d432126d8093c62ff1aebe665936c2abaa83"
-                           FontFamily="{StaticResource Manrope}"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Bottom"
-                           TextWrapping="Wrap"
-                           Margin="80,20"
-                           FontSize="15"
-                           FontWeight="Regular"
-                             IsReadOnly="True"
-                             BorderThickness="1"
-                           Foreground="#EAECEB"
-                             Background="#201f2e"/>
-
             </Grid>
-            
         </Grid>
     </Border>
 </Window>

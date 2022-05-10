@@ -21,6 +21,10 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.IO;
+using System.Net;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using ComboBox = System.Windows.Controls.ComboBox;
 
 namespace ModernMinerWatchDog
 {
@@ -30,21 +34,26 @@ namespace ModernMinerWatchDog
     public partial class MainWindow : Window
     {
         private readonly System.Windows.Forms.Timer _timer = new System.Windows.Forms.Timer();
-        private readonly System.Windows.Forms.Timer _hotkeyTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _settingsTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _minerUpdater = new System.Windows.Forms.Timer();
-        System.Windows.Forms.NotifyIcon icoTrayIcon = new System.Windows.Forms.NotifyIcon();
-        System.IO.Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Images/miner-icon.ico")).Stream;
-        OpenFileDialog ofdMinerPath = new OpenFileDialog();
-        Process miner = new Process();
-        
+        private NotifyIcon icoTrayIcon = new NotifyIcon();
+        private System.Windows.Forms.ContextMenu icoTrayContextMenu;
+        private System.Windows.Forms.MenuItem icoTrayMenuItemOpen;
+        private System.Windows.Forms.MenuItem icoTrayMenuItemExit;
+        private Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/Images/miner-icon.ico")).Stream;
+        private OpenFileDialog ofdMinerPath = new OpenFileDialog();
+        private Process miner = new Process();
+
+        private int UpdateInterval = Properties.Settings.Default.UpdateInterval;
+        private int MaxInvalidShares = Properties.Settings.Default.MaxInvalidShares;
+        private string latestWatchdogRelease = "";
+        private string latestWatchdogChangelog = ""; 
+
         public bool MinerRunning { get; set; }
         public bool UpdateAvailable { get; set; }
         public bool ConfigImported { get; set; }
         public string PreviousVersion { get; set; }
         public int InvalidShares { get; set; }
-        
-        public const int MAX_INVALID_SHARES = 15;
 
         public MainWindow()
         {
@@ -55,7 +64,7 @@ namespace ModernMinerWatchDog
             _timer.Tick += refreshMinerArgs;
             _timer.Enabled = true;
 
-            _minerUpdater.Interval = 43200000; // every 12 hours
+            _minerUpdater.Interval = UpdateInterval; // 43200000; // every 12 hours
             _minerUpdater.Tick += delegate { checkUpdates(); };
             _minerUpdater.Enabled = true;
 
@@ -68,6 +77,26 @@ namespace ModernMinerWatchDog
             icoTrayIcon.Visible = true;
             icoTrayIcon.MouseDoubleClick += icoTrayIcon_MouseDoubleClick;
 
+            icoTrayContextMenu = new System.Windows.Forms.ContextMenu();
+            icoTrayMenuItemOpen = new System.Windows.Forms.MenuItem();
+            icoTrayMenuItemExit = new System.Windows.Forms.MenuItem();
+
+            // Initialize context menu
+            icoTrayContextMenu.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] { icoTrayMenuItemOpen, icoTrayMenuItemExit });
+
+            // Option 1
+            icoTrayMenuItemOpen.Index = 0;
+            icoTrayMenuItemOpen.Text = "S&how";
+            icoTrayMenuItemOpen.Click += IcoTrayMenuItemOpen_Click;
+
+            // Option 2
+            icoTrayMenuItemExit.Index = 1;
+            icoTrayMenuItemExit.Text = "E&xit";
+            icoTrayMenuItemExit.Click += IcoTrayMenuItemExit_Click;
+
+            // Initialize menu on right click
+            icoTrayIcon.ContextMenu = icoTrayContextMenu;
+
             // Main miner process info
             miner.StartInfo.RedirectStandardOutput = true;
             miner.StartInfo.UseShellExecute = false;
@@ -77,9 +106,23 @@ namespace ModernMinerWatchDog
             hkMining.HotkeyTextBox.TextChanged += hkMining_TextChanged;
         }
 
+        private void IcoTrayMenuItemExit_Click(object sender, EventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void IcoTrayMenuItemOpen_Click(object sender, EventArgs e)
+        {
+            this.Show();
+            this.WindowState = WindowState.Normal;
+            this.Focus();
+            this.Activate();
+        }
+
         private void onExit(object sender, CancelEventArgs e)
         {
             Properties.Settings.Default.Save();
+            icoTrayIcon.Icon.Dispose();
             icoTrayIcon.Dispose();
             icoTrayIcon = null;
             terminateMiner();
@@ -88,10 +131,11 @@ namespace ModernMinerWatchDog
             {
                 miner.Kill();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Helpers.DebugConsole(txtDebug, "Could not kill the miner executable. Perhaps no miner process running/found?\n\nSee:\n" + ex, "Exit");
+                Helpers.DebugConsole(txtDebug, "Could not kill the miner executable. Perhaps no miner process running/found?", "Exit");
             }
+            Helpers.DebugConsole(txtDebug, "\n\n-------------------\nAPP INSTANCE EXITED\n\n", "APP_END");
         }
 
         void refreshMinerArgs(object sender, EventArgs e)
@@ -124,10 +168,6 @@ namespace ModernMinerWatchDog
             {
                 Application.Current.MainWindow.WindowState = WindowState.Normal;
             }
-        }
-
-        private void Window_Activated(object sender, EventArgs e)
-        {
         }
 
         private void ButtonMinimize_Click(object sender, RoutedEventArgs e)
@@ -406,7 +446,6 @@ namespace ModernMinerWatchDog
                     {
                         minerOutputLine.ApplyPropertyValue(ForegroundProperty, Brushes.Orchid);
                         
-                        // TODO: dag is generated, run preset ready
                         if (minerOutputLine.Text.Contains("DAG generated"))
                         {
                             this.Dispatcher.Invoke(() =>
@@ -441,7 +480,7 @@ namespace ModernMinerWatchDog
                         minerOutputLine.ApplyPropertyValue(ForegroundProperty, Brushes.Red);
                         InvalidShares += 1;
 
-                        if (InvalidShares > MAX_INVALID_SHARES)
+                        if (InvalidShares > MaxInvalidShares)
                         {
                             TextRange documentEndLine = new TextRange(txtConsole.Document.ContentEnd, txtConsole.Document.ContentEnd);
 
@@ -454,7 +493,6 @@ namespace ModernMinerWatchDog
 
                             InvalidShares = 0;
                         }
-
                     }
                     else
                     {
@@ -476,11 +514,6 @@ namespace ModernMinerWatchDog
                     //txtDebug.ScrollToEnd();
                 });
             }
-        }
-
-        private void txtConsole_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            
         }
 
         void terminateMiner()
@@ -550,12 +583,23 @@ namespace ModernMinerWatchDog
             }
         }
 
+        public string getLatestWatchdog(string author, string repo)
+        {
+            const string GITHUB_API = "https://api.github.com/repos/{0}/{1}/releases";
+            WebClient webClient = new WebClient();
+            webClient.Headers.Add("User-Agent", "Unity web player");
+            Uri uri = new Uri(string.Format(GITHUB_API, author, repo));
+            string releaseList = webClient.DownloadString(uri);
+            
+            return releaseList;
+        }
+
         public string checkMinerUpdate(bool silent = false)
         {
             string silentFlag = "";
             var line = "";
 
-            Helpers.DebugConsole(txtDebug, "Checking to see if miner has updates...", "Updater");
+            Helpers.DebugConsole(txtDebug, "Checking to see if miner has updates...", "Updater PM");
 
             try
             {
@@ -703,20 +747,70 @@ namespace ModernMinerWatchDog
 
         }
 
-        void checkUpdates()
+        void checkUpdates(bool withBaloon = false)
         {
+            JArray jsonRaw = (JArray)JsonConvert.DeserializeObject(getLatestWatchdog("ShoobyDoo", "MinerWatchDog3"));
+            latestWatchdogRelease = jsonRaw[0]["tag_name"].ToString();
+            latestWatchdogChangelog = jsonRaw[0]["body"].ToString();
+
+            Version localVersion = Assembly.GetExecutingAssembly().GetName().Version;
+            Version githubVersion = new Version(latestWatchdogRelease);
+
+            if (githubVersion.CompareTo(localVersion) > 0)
+            {
+                if (withBaloon)
+                {
+                    // If i need to activate baloon tip, perhaps for future update functionality.
+
+                    //icoTrayIcon.BalloonTipText = "Update available! See Github for more details...";
+                    //icoTrayIcon.BalloonTipTitle = "Miner WatchDog 3";
+                    //icoTrayIcon.BalloonTipIcon = ToolTipIcon.Warning;
+
+                    //icoTrayIcon.Visible = true;
+                    //icoTrayIcon.ShowBalloonTip(5);
+
+                    //// TODO: something something remove this and replace it in the button about section area
+                    //MessageBox.Show(latestWatchdogChangelog + "\n\nSee github for installer.", "Update for Miner Watchdog 3 is available.");
+                }
+
+                txtVersion.Foreground = Brushes.LightGoldenrodYellow;
+                txtVersion.TextDecorations = TextDecorations.Underline;
+                tbTTWdUpdateChangelog.Text = String.Format("Miner WatchDog 3 Update ({0}):\n\n{1}", latestWatchdogRelease, latestWatchdogChangelog);
+
+                txtMinerVersion.Foreground = Brushes.LightGoldenrodYellow;
+                txtMinerVersion.TextDecorations = TextDecorations.Underline;
+
+                txtUpdates.Foreground = Brushes.LightGoldenrodYellow;
+                txtUpdates.Text = "There's an update available.";
+
+                btnSeeMore.IsEnabled = true;
+                Helpers.DebugConsole(txtDebug, "There is an update for Miner WatchDog 3 available!", "Updater WD");
+
+            }
+            else
+            {
+                txtVersion.Foreground = (SolidColorBrush)new BrushConverter().ConvertFromString("#EAECEB");
+                txtVersion.TextDecorations = null;
+                tbTTWdUpdateChangelog.Text = "You have the latest Miner WatchDog 3 version.";
+
+                txtMinerVersion.Foreground = (SolidColorBrush)new BrushConverter().ConvertFromString("#EAECEB");
+                txtUpdates.Foreground = Brushes.LightSeaGreen;
+
+                txtUpdates.Text = "You're on the latest version.";
+
+                Helpers.DebugConsole(txtDebug, "You have the latest version of Miner WatchDog 3!", "Updater WD");
+                btnSeeMore.IsEnabled = false;
+            }
+
             string localMiner = checkLocalMinerVersion(silent: true);
             string latestMiner = checkMinerUpdate(silent: true);
 
-            Helpers.DebugConsole(txtDebug, "Local miner: " + (localMiner == "" ? "None" : localMiner), "Updater");
-            Helpers.DebugConsole(txtDebug, "Latest miner: " + latestMiner, "Updater");
-
-            string latestChangelog = checkLatestChangelog(silent: true);
-            Helpers.DebugConsole(txtDebug, String.Format("Changelog found, Raw: {0} characters.", latestChangelog.Length), "Changelog");
+            Helpers.DebugConsole(txtDebug, "Local miner: " + (localMiner == "" ? "None" : localMiner), "Updater PM");
+            Helpers.DebugConsole(txtDebug, "Latest miner: " + latestMiner, "Updater PM");
 
             if (localMiner.Trim() == latestMiner.Trim())
             {
-                tbTTUpdateChangelog.Text = "You're on the latest version.";
+                tbTTUpdateChangelog.Text = "You have the latest PhoenixMiner version.";
                 txtMinerVersion.Text = String.Format("Status: Up to Date!");
                 txtMinerVersion.Foreground = Brushes.LightSeaGreen;
                 txtMinerVersion.TextDecorations = null;
@@ -732,13 +826,15 @@ namespace ModernMinerWatchDog
             }
             else
             {
+                string latestChangelog = checkLatestChangelog(silent: true);
+                Helpers.DebugConsole(txtDebug, String.Format("Changelog found, Raw: {0} characters.", latestChangelog.Length), "Changelog");
+
                 txtMinerVersion.Text = String.Format("Status: Update available! ({0})", latestMiner.Trim());
                 txtMinerVersion.Foreground = Brushes.LightGoldenrodYellow;
                 txtMinerVersion.TextDecorations = TextDecorations.Underline;
                 UpdateAvailable = true;
 
-                // TODO here.
-                tbTTUpdateChangelog.Text = "Here are some details about the new update:\n\n" + latestChangelog;
+                tbTTUpdateChangelog.Text = "PhoenixMiner Update:\n\n" + latestChangelog;
             }
 
             txtLocalMiner.Text = "Miner: PhoenixMiner " + localMiner;
@@ -798,7 +894,7 @@ namespace ModernMinerWatchDog
                 }
                 else
                 {
-                    Helpers.DebugConsole(txtDebug, "No action required for config imports because config exists on latest version.", "Config");
+                    Helpers.DebugConsole(txtDebug, "Config imports not required // config exists on latest version.", "Config");
                     return false;
                 }
 
@@ -815,6 +911,30 @@ namespace ModernMinerWatchDog
             }
         }
 
+        public string[] listOfSettings()
+        {
+            txtMinerPath.Text = Properties.Settings.Default.MinerPath;
+            rtbMinerArgs.Text = Properties.Settings.Default.MinerArgs;
+            txtPool.Text = Properties.Settings.Default.MinerPool;
+            txtWallet.Text = Properties.Settings.Default.MinerWallet;
+            txtWorker.Text = Properties.Settings.Default.MinerWorker;
+            txtPassword.Text = Properties.Settings.Default.MinerPassword;
+            txtCoin.Text = Properties.Settings.Default.MinerCoin;
+            txtAdditionalArgs.Text = Properties.Settings.Default.MinerAdditionalArgs;
+
+            string[] minerSettings = {
+                "Miner Path      -> " + txtMinerPath.Text,
+                "Crypto Pool     -> " + txtPool.Text,
+                "Crypto Wallet   -> " + txtWallet.Text,
+                "Miner Worker    -> " + txtWorker.Text,
+                "Pool Password   -> " + txtPassword.Text,
+                "Crypto Coin     -> " + txtCoin.Text,
+                "Additional Args -> " + txtAdditionalArgs.Text
+            };
+
+            return minerSettings;
+        }
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             string[] args = Environment.GetCommandLineArgs();
@@ -825,12 +945,13 @@ namespace ModernMinerWatchDog
                 {
                     Helpers.Debug = true;
                     arg = args[1];
-                    Helpers.DebugConsole(txtDebug, "Application instance starting in debug mode!");
+                    Helpers.DebugConsole(txtDebug, "APPLICATION START: (debug mode)!", "APP_START");
                 }
             }
             else
             {
                 Helpers.Debug = false;
+                Helpers.DebugConsole(txtDebug, "APPLICATION START: (release mode)!", "APP_START");
             }
 
             TextRange document = new TextRange(
@@ -841,12 +962,21 @@ namespace ModernMinerWatchDog
             );
 
             document.Text = String.Format(
-                "MinerWatchDog {0} by Doomlad {1} - ({2})\n\n", 
+                "[MinerWatchDog {0} by Doomlad 2021-{1} / ({2})]\n\n", 
                 Assembly.GetExecutingAssembly().GetName().Version.ToString(), 
                 DateTime.Now.Year, 
                 Helpers.Debug ? "debug" : "release");
 
             document.ApplyPropertyValue(ForegroundProperty, Brushes.LightGray);
+
+            UpdateInterval = Properties.Settings.Default.UpdateInterval;
+            MaxInvalidShares = Properties.Settings.Default.MaxInvalidShares;
+
+            Helpers.DebugConsole(txtDebug, String.Format("Update interval: {0} ms", UpdateInterval), "Settings");
+            Helpers.DebugConsole(txtDebug, String.Format("Maximum invalid shares: {0}", MaxInvalidShares), "Settings");
+
+            lbCheckUpdates.SelectedIndex = Properties.Settings.Default.UpdateIntervalSelectedIndex; // get from prev session
+            txtMaxIncorrectShares.Text = MaxInvalidShares.ToString();
 
             ConfigImported = checkConfig();
             checkUpdates();
@@ -892,24 +1022,8 @@ namespace ModernMinerWatchDog
 
             Helpers.DebugConsole(txtDebug, "Retreiving user settings...", "Settings");
 
-            txtMinerPath.Text = Properties.Settings.Default.MinerPath;
-            rtbMinerArgs.Text = Properties.Settings.Default.MinerArgs;
-            txtPool.Text = Properties.Settings.Default.MinerPool;
-            txtWallet.Text = Properties.Settings.Default.MinerWallet;
-            txtWorker.Text = Properties.Settings.Default.MinerWorker;
-            txtPassword.Text = Properties.Settings.Default.MinerPassword;
-            txtCoin.Text = Properties.Settings.Default.MinerCoin;
-            txtAdditionalArgs.Text = Properties.Settings.Default.MinerAdditionalArgs;
-
-            string[] minerSettings = { 
-                "Miner Path      -> " + txtMinerPath.Text,
-                "Crypto Pool     -> " + txtPool.Text,
-                "Crypto Wallet   -> " + txtWallet.Text,
-                "Miner Worker    -> " + txtWorker.Text,
-                "Pool Password   -> " + txtPassword.Text,
-                "Crypto Coin     -> " + txtCoin.Text,
-                "Additional Args -> " + txtAdditionalArgs.Text
-            };
+            // Moved to function
+            string[] minerSettings = listOfSettings();
 
             foreach (string i in minerSettings) { Helpers.DebugConsole(txtDebug, i, "Settings"); }
 
@@ -955,7 +1069,9 @@ namespace ModernMinerWatchDog
             Helpers.DebugConsole(txtDebug, "Gaming Hotkey -> " + Properties.Settings.Default.HotkeyGaming, "Settings");
             Helpers.DebugConsole(txtDebug, "Mining Hotkey -> " + Properties.Settings.Default.HotkeyMining, "Settings");
 
-            Helpers.DebugConsole(txtDebug, "Settings loaded successfully, application has fully loaded all components.", "Settings");
+            tbAbout.Text = "This program constantly monitors all running processes for user defined entries and will automatically start / stop crypto mining software based on which entries deny mining.\n\n(Currently only PhoenixMiner is supported.)";
+
+            Helpers.DebugConsole(txtDebug, "Settings loaded successfully, all components fully loaded.", "Settings");
 
             if (ConfigImported)
             {
@@ -1444,12 +1560,19 @@ namespace ModernMinerWatchDog
 
                 TextRange verifiedUpdateMsg = new TextRange(txtConsole.Document.ContentEnd, txtConsole.Document.ContentEnd);
                 verifiedUpdateMsg.Text += "\nMinerWatchDog: " + localMiner;
-                verifiedUpdateMsg.Text += "\nMinerWatchDog: Update is now complete, attempting to restart (experimental)...\n";
+                verifiedUpdateMsg.Text += "\nMinerWatchDog: Updating miner path to " + applicationPath2.Replace(@"file:\", "") + @"\Miner\PhoenixMiner.exe";
+
+                txtMinerPath.Text = applicationPath2.Replace(@"file:\", "") + @"\Miner\PhoenixMiner.exe";
+                Properties.Settings.Default.MinerPath = txtMinerPath.Text;
+
+                verifiedUpdateMsg.Text += "\nMinerWatchDog: Update is now complete, restarting miner...\n";
                 verifiedUpdateMsg.ApplyPropertyValue(ForegroundProperty, new SolidColorBrush(Color.FromRgb(23, 162, 184)));
 
                 checkUpdates();
 
-                MessageBox.Show("If you notice significant differences in performance (ex. unusually high ram usage, far lower hashrate, etc.) " +
+                MessageBox.Show("Please note, since the auto updater downloads crypto mining software (PhoenixMiner), windows defender does not take too kindly to it. " + 
+                    "In the event the updater is not successful, its likely windows defender is blocking the PhoenixMiner.zip, so in order to fix this you need to allow it " + 
+                    "in defender. \n\nIf you notice significant differences in performance (ex. unusually high ram usage, far lower hashrate, etc.) " +
                     "or you notice the watchdog is not working as intended after the auto-update, simply restart.", "[Important]", MessageBoxButton.OK, MessageBoxImage.Exclamation);
 
                 miner.Start();
@@ -1471,6 +1594,85 @@ namespace ModernMinerWatchDog
             Properties.Settings.Default.HotkeyMining = hkMining.HotkeyTextBox.Text;
             Properties.Settings.Default.Save();
             txtHkMining.Text = Properties.Settings.Default.HotkeyMining;
+        }
+
+        private void lbCheckUpdates_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Properties.Settings.Default.UpdateIntervalSelectedIndex = lbCheckUpdates.SelectedIndex;
+            string text = (lbCheckUpdates.SelectedItem as ComboBoxItem).Content.ToString();
+            UpdateInterval = Int32.Parse(text) * 3600000; // 1 hr * 3600000 = time in ms
+
+            Properties.Settings.Default.UpdateInterval = UpdateInterval;
+            Properties.Settings.Default.Save();
+
+            Helpers.DebugConsole(txtDebug, String.Format("Update interval check has been set to: {0}ms [{1} hour(s)]", UpdateInterval, text), "Updater");
+            Helpers.DebugConsole(txtDebug, String.Format("Update interval index has been set to: {0}", lbCheckUpdates.SelectedIndex), "Updater");
+        }
+
+        private void txtMaxIncorrectShares_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try { MaxInvalidShares = Int32.Parse(txtMaxIncorrectShares.Text); }
+            catch (Exception) { Helpers.DebugConsole(txtDebug, "Parse max incorrect shares textbox input to int failed", "Settings"); }
+
+            Properties.Settings.Default.MaxInvalidShares = MaxInvalidShares;
+            Properties.Settings.Default.Save();
+        }
+
+        private void btnConfigImporter_Click(object sender, RoutedEventArgs e)
+        {
+            ConfigImporter configImporterForm = new ConfigImporter(this);
+            configImporterForm.Show();
+            btnConfigImporter.IsEnabled = false;
+            btnConfigImporter.Content = "Running";
+        }
+
+        private void txtMinerPath_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            checkUpdates();
+        }
+
+        private void btnOpenDiscord_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(txtSupportLink.Text);
+        }
+
+        private void btnSeeMore_Click(object sender, RoutedEventArgs e)
+        {
+            if (latestWatchdogRelease != null || latestWatchdogRelease == "")
+            {
+                MessageBoxResult result = MessageBox.Show(latestWatchdogChangelog + "\n\nWould you like to download the installer for the latest version?\n(Opens link to Github)", "An update for Miner Watchdog 3 is available.", MessageBoxButton.YesNo);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    Process.Start(String.Format(@"https://github.com/ShoobyDoo/MinerWatchDog3/releases/tag/{0}", latestWatchdogRelease));
+                }
+            }
+        }
+
+        private void txtVersion_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            txtVersion.FontWeight = FontWeights.Normal;
+        }
+
+        private void txtVersion_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            Version latest = new Version(latestWatchdogRelease);
+            if (latest > Assembly.GetExecutingAssembly().GetName().Version)
+            {
+                txtVersion.FontWeight = FontWeights.Bold;
+                txtVersion.TextDecorations = TextDecorations.Underline;
+                txtVersion.Cursor = System.Windows.Input.Cursors.Hand;
+            }
+        }
+
+        private void txtVersion_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Version latest = new Version(latestWatchdogRelease);
+            if (latest > Assembly.GetExecutingAssembly().GetName().Version)
+            {
+                rbAbout.IsChecked = true;
+                rbAbout_Checked(sender, e);
+            }
         }
     }
 }
