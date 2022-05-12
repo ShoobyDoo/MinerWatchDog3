@@ -129,10 +129,10 @@ namespace ModernMinerWatchDog
 
         private void btnImport_Click(object sender, RoutedEventArgs e)
         {
-            Mouse.OverrideCursor = Cursors.Wait;
-
             if (OldConfigPath != null)
             {
+                Mouse.OverrideCursor = Cursors.Wait;
+
                 string[] localAppdata = Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\MinerWatchDog3");
                 string allConfigsPath = localAppdata[0];
                 string configFilename = "\\user.config";
