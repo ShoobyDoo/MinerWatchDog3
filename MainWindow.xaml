@@ -473,7 +473,7 @@
                                  TextChanged="txtProcessesSearch_TextChanged"/>
 
                         <TextBlock IsHitTestVisible="False"
-                                       Text="Search"
+                                       Text="Search Processes"
                                        VerticalAlignment="Center"
                                        HorizontalAlignment="Left"
                                        Margin="18,5,5,0"

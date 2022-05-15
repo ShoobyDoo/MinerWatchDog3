@@ -28,9 +28,6 @@ namespace ModernMinerWatchDog
     public partial class ConfigImporter
     {
         MainWindow mainWindow;
-
-        string[] localAppdataOLD = Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Doomlad");
-        string[] localAppdataNEW = Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\MinerWatchDog3");
         List<Configs> configs = new List<Configs>();
         Dictionary<string, string> importedBatchScript = new Dictionary<string, string>();
 
@@ -42,6 +39,18 @@ namespace ModernMinerWatchDog
             InitializeComponent();
             mainWindow = mw;
             Closing += ConfigImporter_Closing;
+
+            string[] localAppdataOLD = { };
+            string[] localAppdataNEW = Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\MinerWatchDog3");
+
+            try
+            {
+                localAppdataOLD = Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Doomlad");
+            }
+            catch (Exception ex)
+            {
+                Helpers.DebugConsole(mainWindow.txtDebug, ex.Message, "CfgImporter", 2);
+            }
 
             List<string> masterDirectories = localAppdataOLD.Concat(localAppdataNEW).ToList();
             foreach (string appInstance in masterDirectories)

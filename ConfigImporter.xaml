@@ -140,7 +140,7 @@
                     TextChanged="txtFilter_TextChanged"/>
 
                 <TextBlock IsHitTestVisible="False"
-                        Text="Filter"
+                        Text="Filter by Version"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Left"
                         Margin="7,0"
