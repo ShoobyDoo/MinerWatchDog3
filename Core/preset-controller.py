@@ -19,7 +19,7 @@ if args.version:
     sys.exit()
 
 elif args.keystroke:
-    print("Attempting to process keystroke: {}".format(args.keystroke))
+    print("Sending keystroke: {}".format(args.keystroke))
     
     try:
         keys = args.keystroke.replace('+', '').replace("NumPad", "Num").split()

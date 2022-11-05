@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Miner WatchDog 3"
         WindowStartupLocation="CenterScreen"
-        Height="700" Width="1100"
+        Height="720" Width="1100"
         MinHeight="650" MinWidth="1050"
         WindowStyle="SingleBorderWindow"
         ResizeMode="CanResize"
@@ -28,7 +28,7 @@
     <Border Background="#272537"
             CornerRadius="10">
 
-        <Grid>
+        <Grid x:Name="gridMainViews">
 
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="225"/>
@@ -39,8 +39,35 @@
                 <RowDefinition Height="40"/>
                 <RowDefinition Height="135"/>
                 <RowDefinition/>
+                <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
 
+            <Border Grid.Row="3"
+                    Grid.Column="2"
+                    x:Name="bdrUpdateAvailable"
+                    Visibility="Visible"
+                    Height="30"
+                        Background="LightGoldenrodYellow"
+                        Margin="5,0,5,5"
+                        CornerRadius="5" 
+                    MouseDown="bdrUpdateAvailable_MouseDown" 
+                    MouseEnter="bdrUpdateAvailable_MouseEnter" 
+                    MouseLeave="bdrUpdateAvailable_MouseLeave"/>
+
+            <TextBlock VerticalAlignment="Center"
+                           TextAlignment="Center"
+                       IsHitTestVisible="False"
+                       HorizontalAlignment="Center"
+                       Visibility="Visible"
+                       Grid.Column="2"
+                            Grid.Row="3"
+                           Margin="5,0,5,5"
+                            x:Name="txtUpdateAvailable"
+                            Foreground="#201f2e"
+                            Text="Update available!"
+                            FontFamily="{StaticResource Manrope}" 
+                            FontSize="16"
+                            FontWeight="Bold"/>
 
             <Border Grid.Row="1" 
                     Margin="5,0,0,0"
@@ -48,6 +75,7 @@
                     Background="#201f2e"/>
 
             <Border Grid.Row="2" 
+                    Grid.RowSpan="2"
                     Margin="5,0,0,5" 
                     CornerRadius="0,0,5,5"
                     Background="#201f2e">
@@ -72,9 +100,10 @@
                             <RowDefinition/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock VerticalAlignment="Center"
+                        <TextBlock VerticalAlignment="Top"
+                                   HorizontalAlignment="Left"
                                    Grid.Row="0"
-                                   Margin="10,10,10,0"
+                                   Margin="10,19,0,0"
                                    x:Name="txtMinerVersion"
                                    Foreground="#EAECEB"
                                    Text="Status: Can't access miner!"
@@ -84,7 +113,7 @@
                                    MouseEnter="txtMinerVersion_MouseEnter" 
                                    MouseLeave="txtMinerVersion_MouseLeave" 
                                    MouseDown="txtMinerVersion_MouseDown"
-                                   ToolTipService.ShowDuration="60000">
+                                   ToolTipService.ShowDuration="60000" Grid.RowSpan="2">
 
                             <TextBlock.ToolTip>
                                 <ToolTip x:Name="ttUpdateChangelog"
@@ -98,9 +127,9 @@
                             </TextBlock.ToolTip>
                         </TextBlock>
 
-                        <TextBlock VerticalAlignment="Center"
+                        <TextBlock VerticalAlignment="Top"
                                    Grid.Row="1"
-                                   Margin="10,5,5,5"
+                                   Margin="10,13,10,0"
                                    x:Name="txtLocalMiner"
                                    Foreground="#EAECEB"
                                    Text="Miner: No version found!"
@@ -108,9 +137,10 @@
                                    FontSize="13"
                                    FontWeight="Regular"/>
 
-                        <TextBlock VerticalAlignment="Center"
+                        <TextBlock VerticalAlignment="Top"
+                                   HorizontalAlignment="Left"
                                    Grid.Row="2"
-                                   Margin="10,5,5,10"
+                                   Margin="10,5,0,0"
                                    x:Name="txtVersion"
                                    Foreground="#EAECEB"
                                    Text="WatchDog: 0.0.0.0"
@@ -222,8 +252,6 @@
                         <RowDefinition/>
                         <RowDefinition/>
                     </Grid.RowDefinitions>
-
-
 
                     <RadioButton Content="Miner"
                                  Grid.Row="0"
@@ -365,7 +393,7 @@
             <!--#endregion-->
 
             <!-- MINER GRID CONTENT -->
-            <Grid x:Name="gridMiner" Visibility="Hidden" Grid.Column="1" Grid.Row="2">
+            <Grid x:Name="gridMiner" Visibility="Visible" Grid.Column="1" Grid.Row="2">
 
                 <Grid.RowDefinitions>
                     <RowDefinition Height="50"/>
@@ -427,13 +455,14 @@
                                      x:Name="txtConsole"
                                      x:FieldModifier="public"
                                      Margin="5"
+                                     TextBlock.TextAlignment="Left"
                                      VerticalScrollBarVisibility="Visible"
                                      BorderThickness="0"
                                      TextBlock.LineHeight="1"
                                      FontFamily="Consolas"
                                      Foreground="#EAECEB" 
                                      Background="Transparent"
-                                     FontSize="15"
+                                     FontSize="16"
                                      IsReadOnly="True"/>
                     </Grid>
                 </Grid>
@@ -537,7 +566,7 @@
             </Grid>
 
             <!-- SETTINGS GRID CONTENT -->
-            <Grid x:Name="gridSettings" Visibility="Visible" Grid.Column="1" Grid.Row="2">
+            <Grid x:Name="gridSettings" Visibility="Hidden" Grid.Column="1" Grid.Row="2">
 
                 <Grid.RowDefinitions>
                     <RowDefinition Height="50"/>

@@ -75,7 +75,7 @@ namespace ModernMinerWatchDog
             icoTrayIcon.Icon = new System.Drawing.Icon(iconStream);
             icoTrayIcon.Text = "Miner WatchDog 3";
             icoTrayIcon.Visible = true;
-            icoTrayIcon.MouseDoubleClick += icoTrayIcon_MouseDoubleClick;
+            icoTrayIcon.MouseClick += icoTrayIcon_MouseClick;
 
             icoTrayContextMenu = new System.Windows.Forms.ContextMenu();
             icoTrayMenuItemOpen = new System.Windows.Forms.MenuItem();
@@ -241,14 +241,14 @@ namespace ModernMinerWatchDog
                     if (gamesList.Contains(p.ProcessName))
                     {
                         processStatus = String.Format("A GPU intensive program [{0}] is currently running...", p.ProcessName);
-                        processList += " " + p.Id.ToString().PadRight(20) + p.ProcessName + "\n";
+                        processList += p.Id.ToString().PadRight(20) + p.ProcessName + "\n";
                         gamesAllowed = false;
                         break;
                     }
                     else if (gamesIgnored.Contains(p.ProcessName))
                     {
                         processStatus = String.Format("A Non-GPU intensive program [{0}] is currently running...", p.ProcessName);
-                        processList += " " + p.Id.ToString().PadRight(20) + p.ProcessName + "\n";
+                        processList += p.Id.ToString().PadRight(20) + p.ProcessName + "\n";
                         gamesAllowed = true;
                         parentFound = true;
                     }
@@ -256,7 +256,7 @@ namespace ModernMinerWatchDog
                     if (!parentFound)
                     {
                         processStatus = "No blacklisted program(s) currently running...";
-                        allProcesses += " " + p.Id.ToString().PadRight(20) + p.ProcessName + "\n";
+                        allProcesses += p.Id.ToString().PadRight(20) + p.ProcessName + "\n";
                         gamesAllowed = false;
                         parentFound = false;
                     }
@@ -484,8 +484,8 @@ namespace ModernMinerWatchDog
                         {
                             TextRange documentEndLine = new TextRange(txtConsole.Document.ContentEnd, txtConsole.Document.ContentEnd);
 
-                            documentEndLine.Text += "MinerWatchDog: High number of invalid shares were detected...\n";
-                            documentEndLine.Text += "MinerWatchDog: Attempting to restart automatically...\n";
+                            documentEndLine.Text += "MinerWatchDog: A high number of invalid shares (" + InvalidShares + ") were detected...\n";
+                            documentEndLine.Text += "MinerWatchDog: Attempting to restart miner automatically...\n";
                             documentEndLine.ApplyPropertyValue(ForegroundProperty, new SolidColorBrush(Color.FromRgb(23, 162, 184)));
 
                             miner.Kill();
@@ -575,10 +575,10 @@ namespace ModernMinerWatchDog
                         }
 
                     }
-                    catch (Exception)
+                    catch (Exception exc)
                     {
+                        Helpers.DebugConsole(txtDebug, String.Format("Error while terminating watchdog: {0}", exc.Message), level: 2);
                     }
-
                 }
             }
         }
@@ -773,8 +773,18 @@ namespace ModernMinerWatchDog
                     //MessageBox.Show(latestWatchdogChangelog + "\n\nSee github for installer.", "Update for Miner Watchdog 3 is available.");
                 }
 
+                if (txtUpdateAvailable.Visibility != Visibility.Visible)
+                {
+                    gridMainViews.RowDefinitions.Add(new RowDefinition());
+                    gridMainViews.RowDefinitions[gridMainViews.RowDefinitions.Count - 1].Height = GridLength.Auto;
+
+                    txtUpdateAvailable.Visibility = Visibility.Visible;
+                    bdrUpdateAvailable.Visibility = Visibility.Visible;
+                }
+
+
+                // Old MW3 Update available code
                 txtVersion.Foreground = Brushes.LightGoldenrodYellow;
-                txtVersion.TextDecorations = TextDecorations.Underline;
                 tbTTWdUpdateChangelog.Text = String.Format("Miner WatchDog 3 Update ({0}):\n\n{1}", latestWatchdogRelease, latestWatchdogChangelog);
 
                 txtMinerVersion.Foreground = Brushes.LightGoldenrodYellow;
@@ -789,6 +799,16 @@ namespace ModernMinerWatchDog
             }
             else
             {
+                if (txtUpdateAvailable.Visibility == Visibility.Visible)
+                {
+                    gridMainViews.RowDefinitions.RemoveAt(gridMainViews.RowDefinitions.Count - 1);
+
+                    txtUpdateAvailable.Visibility = Visibility.Hidden;
+                    bdrUpdateAvailable.Visibility = Visibility.Hidden;
+                }
+
+
+                // Old MW3 Update available code
                 txtVersion.Foreground = (SolidColorBrush)new BrushConverter().ConvertFromString("#EAECEB");
                 txtVersion.TextDecorations = null;
                 tbTTWdUpdateChangelog.Text = "You have the latest Miner WatchDog 3 version.";
@@ -808,6 +828,7 @@ namespace ModernMinerWatchDog
             Helpers.DebugConsole(txtDebug, "Local miner: " + (localMiner == "" ? "None" : localMiner), "Updater PM");
             Helpers.DebugConsole(txtDebug, "Latest miner: " + latestMiner, "Updater PM");
 
+            latestMiner = "6.2f"; 
             if (localMiner.Trim() == latestMiner.Trim())
             {
                 tbTTUpdateChangelog.Text = "You have the latest PhoenixMiner version.";
@@ -829,7 +850,7 @@ namespace ModernMinerWatchDog
                 string latestChangelog = checkLatestChangelog(silent: true);
                 Helpers.DebugConsole(txtDebug, String.Format("Changelog found, Raw: {0} characters.", latestChangelog.Length), "Changelog");
 
-                txtMinerVersion.Text = String.Format("Status: Update available! ({0})", latestMiner.Trim());
+                txtMinerVersion.Text = String.Format("Status: Update available! ({0}) ⧉", latestMiner.Trim());
                 txtMinerVersion.Foreground = Brushes.LightGoldenrodYellow;
                 txtMinerVersion.TextDecorations = TextDecorations.Underline;
                 UpdateAvailable = true;
@@ -961,8 +982,13 @@ namespace ModernMinerWatchDog
                 txtConsole.Document.ContentEnd
             );
 
-            document.Text = String.Format(
-                "[MinerWatchDog {0} by Doomlad 2021-{1} / ({2})]\n\n", 
+            document.Text = String.Format(@"    __  ____                _       __      __       __    ____             _____
+   /  |/  (_)___  ___  ____| |     / /___ _/ /______/ /_  / __ \____  ____ |__  /
+  / /|_/ / / __ \/ _ \/ ___/ | /| / / __ `/ __/ ___/ __ \/ / / / __ \/ __ `//_ < 
+ / /  / / / / / /  __/ /   | |/ |/ / /_/ / /_/ /__/ / / / /_/ / /_/ / /_/ /__/ / 
+/_/  /_/_/_/ /_/\___/_/    |__/|__/\__,_/\__/\___/_/ /_/_____/\____/\__, /____/  
+                                                                   /____/        " + 
+                "\n[{0} by Doomlad 2021-{1} / ({2})]\n\n", 
                 Assembly.GetExecutingAssembly().GetName().Version.ToString(), 
                 DateTime.Now.Year, 
                 Helpers.Debug ? "debug" : "release");
@@ -1405,7 +1431,7 @@ namespace ModernMinerWatchDog
             
         }
 
-        private void icoTrayIcon_MouseDoubleClick(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void icoTrayIcon_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             Show();
             Activate();
@@ -1652,6 +1678,7 @@ namespace ModernMinerWatchDog
         private void txtVersion_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
             txtVersion.FontWeight = FontWeights.Normal;
+            txtVersion.TextDecorations = null;
         }
 
         private void txtVersion_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
@@ -1673,6 +1700,25 @@ namespace ModernMinerWatchDog
                 rbAbout.IsChecked = true;
                 rbAbout_Checked(sender, e);
             }
+        }
+
+        private void bdrUpdateAvailable_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            btnSeeMore_Click(sender, e);
+        }
+
+        private void bdrUpdateAvailable_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            txtUpdateAvailable.TextDecorations = TextDecorations.Underline;
+            txtUpdateAvailable.FontWeight = FontWeights.UltraBold;
+            bdrUpdateAvailable.Cursor = System.Windows.Input.Cursors.Hand;
+        }
+
+        private void bdrUpdateAvailable_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            txtUpdateAvailable.TextDecorations = null;
+            bdrUpdateAvailable.Cursor = System.Windows.Input.Cursors.Arrow;
+            txtUpdateAvailable.FontWeight = FontWeights.Bold;
         }
     }
 }
